@@ -1,0 +1,46 @@
+{
+  "bundler": "rollup",
+  "shimport": "2.0.4",
+  "assets": {
+    "main": "client.e524e583.js"
+  },
+  "css": {
+    "main": [
+      "client-36ba3734.css"
+    ]
+  },
+  "dependencies": {
+    "index.svelte": [
+      "index.704c80f5.js",
+      "Button.40b2876b.js",
+      "inject_styles.5607aec6.js",
+      "Button-6727c831.css",
+      "index-3af9cc6c.css"
+    ],
+    "contact.svelte": [
+      "contact.564cec52.js",
+      "Button.40b2876b.js",
+      "inject_styles.5607aec6.js",
+      "Button-6727c831.css",
+      "contact-e2a75786.css"
+    ],
+    "about.svelte": [
+      "about.1f6fbf46.js",
+      "inject_styles.5607aec6.js",
+      "about-d18c6f8c.css"
+    ],
+    "jobs/index.svelte": [
+      "index.fa95e407.js",
+      "inject_styles.5607aec6.js",
+      "index-ba1f5847.css"
+    ],
+    "jobs/create.svelte": [
+      "create.94244cea.js",
+      "inject_styles.5607aec6.js",
+      "create-4e534531.css"
+    ]
+  },
+  "legacy_assets": {
+    "main": "client.4d975f8a.js"
+  }
+}

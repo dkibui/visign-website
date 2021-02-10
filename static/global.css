@@ -1,0 +1,38 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: Poppins, Segoe UI, sans-serif;
+	color: #333;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	min-height: 100%;
+	position: relative;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+body::-webkit-scrollbar {
+	display: none;
+}
+
+#sapper {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	/* Hide scrollbar for IE, Edge and Firefox */
+	-ms-overflow-style: none;  /* IE and Edge */
+	scrollbar-width: none;  /* Firefox */
+}
+
+footer {
+	margin-top: auto;
+}
+
+a {
+	color: #333;
+}
