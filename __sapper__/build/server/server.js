@@ -25,73 +25,295 @@ var Url__default = /*#__PURE__*/_interopDefaultLegacy(Url);
 var https__default = /*#__PURE__*/_interopDefaultLegacy(https);
 var zlib__default = /*#__PURE__*/_interopDefaultLegacy(zlib);
 
-const mysql = require('mysql');
+const mysql = require("mysql");
 
 const connect = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'demo',
-    multipleStatements: true,
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "demo",
+  multipleStatements: true,
 });
 
 connect.connect((err) => {
-    if (!err) {
-        console.log('Connected to mySQL');
-    } else {
-        console.log('Connection to mySQL Failed');
-    }
+  if (!err) {
+    console.log("Connected to mySQL");
+  } else {
+    console.log("Connection to mySQL Failed");
+  }
 });
 
 function get(req, res) {
-    connect.query('SELECT * FROM jobs', (err, rows, fields) => {
-        if (!err) {
-            res.end(JSON.stringify(rows));
-            // console.log(rows)
-        } else {
-            console.log('Error querying database');
-        }
-    });
+  connect.query("SELECT * FROM blogs ORDER BY created_at DESC", (err, rows, fields) => {
+    if (!err) {
+      res.end(JSON.stringify(rows));
+    } else {
+      console.log("Error querying database");
+    }
+  });
 }
 
-function post(req, res) {
-    console.log('Received post');
-    console.log(req.body);
-
-    const {
-        title,
-        category,
-        location,
-        company,
-        salary,
-        details } = req.body;
-
-    let stmt = `INSERT INTO jobs (
-        title,
-        category,
-        location,
-        company,
-        salary,
-        details) VALUES(?,?,?,?,?,?)`;
-
-    let data = [
-        title, category, location, company, salary, details
-    ];
-
-    // execute the insert statment
-    connect.query(stmt, data, (err, results, fields) => {
-        if (err) {
-            return console.error(err.message);
-        }
-        // get inserted id
-        console.log('Todo Id:' + results.insertId);
-    });
+function put(req, res) {
+  const {
+    id
+  } = req.body;
+  const sql = "DELETE FROM blogs WHERE id =?";
+  connect.query(sql, id, (err, results, fields) => {
+    if (err)
+      return console.error(error.message)
+    console.log('Deleted Row(s):', results.affectedRows);
+    res.send(JSON.stringify(results.affectedRows));
+  });
 }
 
 var route_0 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    get: get,
-    post: post
+  __proto__: null,
+  get: get,
+  put: put
+});
+
+const mysql$1 = require("mysql");
+
+const connect$1 = mysql$1.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "demo",
+  multipleStatements: true,
+});
+
+connect$1.connect((err) => {
+  if (!err) {
+    console.log("Connected to mySQL");
+  } else {
+    console.log("Connection to mySQL Failed");
+  }
+});
+
+const queryOutput = [];
+connect$1.query("SELECT * FROM authors", (err, rows, fields) => {
+  if (!err) {
+    queryOutput.push(rows);
+  } else {
+    console.log("Error querying database");
+  }
+});
+
+connect$1.query("SELECT * FROM categories", (err, rows, fields) => {
+  if (!err) {
+    queryOutput.push(rows);
+  } else {
+    console.log("Error querying database");
+  }
+});
+
+function get$1(req, res) {
+  res.end(JSON.stringify(queryOutput));
+}
+function post(req, res) {
+  const {
+    author,
+    category,
+    title,
+    summary,
+    content
+  } = req.body;
+
+  let stmt = `INSERT INTO blogs (author_id, category_id, title, summary, content) VALUES (?,?,?,?,?)`;
+  let values = [parseInt(author), parseInt(category), title, summary, content];
+  if (author && category && title && summary && content) {
+    connect$1.query(stmt, values, (err, results, fields) => {
+      if (err) {
+        return console.error(err.message);
+      } else {
+        console.log("Blog Id:" + results.insertId);
+      }
+    });
+  }
+  console.log(req.body);
+}
+
+var route_1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  get: get$1,
+  post: post
+});
+
+const mysql$2 = require("mysql");
+
+const connect$2 = mysql$2.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "demo",
+  multipleStatements: true,
+});
+
+connect$2.connect((err) => {
+  if (!err) {
+    console.log("Connected to mySQL");
+  } else {
+    console.log("Connection to mySQL Failed");
+  }
+});
+
+function get$2(req, res) {
+  const id = req.params.id;
+  // console.log(id);
+  connect$2.query(
+    "SELECT title,summary,content FROM blogs WHERE id=?", [id],
+    (err, rows, fields) => {
+      if (!err) {
+        res.end(JSON.stringify(rows));
+        // console.log(JSON.stringify(rows));
+        // console.log('Server received GET/blogs/update/'+id)
+      } else {
+        console.log("Error querying database");
+      }
+    }
+  );
+}
+function patch(req, res) {
+  const id = req.params.id;
+  console.log(id);
+  const {
+    title,
+    summary,
+    content
+  } = req.body;
+
+  let stmt = `UPDATE blogs SET title = ?, summary = ?, content = ? WHERE id = ?`;
+
+  let values = [title, summary, content, id];
+  if (title && summary && content) {
+    connect$2.query(stmt, values, (err, results, fields) => {
+      if (err) {
+        return console.error(err.message);
+      } else {
+        console.log("Blog Id:" + results.insertId);
+        // res.redirect('/blogs')
+        // res.send('Blog successfully updated')
+      }
+    });
+  }
+}
+
+var route_2 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  get: get$2,
+  patch: patch
+});
+
+const mysql$3 = require("mysql");
+
+const connect$3 = mysql$3.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "demo",
+  multipleStatements: true,
+});
+
+connect$3.connect((err) => {
+  if (!err) {
+    console.log("Connected to mySQL");
+  } else {
+    console.log("Connection to mySQL Failed");
+  }
+});
+
+function get$3(req, res) {
+  connect$3.query("SELECT * FROM blogs ORDER BY created_at DESC", (err, rows, fields) => {
+    if (!err) {
+      res.end(JSON.stringify(rows));
+    } else {
+      console.log("Error querying database");
+    }
+  });
+}
+
+function put$1(req, res) {
+  const {
+    id
+  } = req.body;
+  const sql = "DELETE FROM blogs WHERE id =?";
+  connect$3.query(sql, id, (err, results, fields) => {
+    if (err)
+      return console.error(error.message)
+    console.log('Deleted Row(s):', results.affectedRows);
+    res.send(JSON.stringify(results.affectedRows));
+  });
+}
+
+var route_3 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  get: get$3,
+  put: put$1
+});
+
+const mysql$4 = require("mysql");
+
+const connect$4 = mysql$4.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "demo",
+  multipleStatements: true,
+});
+
+connect$4.connect((err) => {
+  if (!err) {
+    console.log("Connected to mySQL");
+  } else {
+    console.log("Connection to mySQL Failed");
+  }
+});
+
+function get$4(req, res) {
+  const id = req.params.id;
+  // console.log(id);
+  connect$4.query(
+    `SELECT * 
+    FROM blogs 
+    WHERE id=?`, [id],
+    (err, rows, fields) => {
+      if (!err) {
+        res.end(JSON.stringify(rows));
+        // console.log(JSON.stringify(rows));
+        // console.log('Server received GET/blogs/update/'+id)
+      } else {
+        console.log("Error querying database");
+      }
+    }
+  );
+}
+function patch$1(req, res) {
+  const id = req.params.id;
+  //   console.log(id);
+  const {
+    title,
+    summary,
+    content
+  } = req.body;
+
+  let stmt = `UPDATE blogs SET title = ?, summary = ?, content = ? WHERE id = ?`;
+
+  let values = [title, summary, content, id];
+  if (title && summary && content) {
+    connect$4.query(stmt, values, (err, results, fields) => {
+      if (err) {
+        return console.error(err.message);
+      } else {
+        console.log("Blog Id:" + results.insertId);
+      }
+    });
+  }
+}
+
+var route_4 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  get: get$4,
+  patch: patch$1
 });
 
 function noop() { }
@@ -207,109 +429,141 @@ const Button = create_ssr_component(($$result, $$props, $$bindings, slots) => {
 	return `<button class="${"svelte-12vqe32"}">${escape(value)}</button>`;
 });
 
-/* src/components/Faq.svelte generated by Svelte v3.31.2 */
+/* src/components/Services.svelte generated by Svelte v3.31.2 */
 
 const css$1 = {
-	code: "article.svelte-7rvkai{width:90%;max-width:1100px;margin:auto;margin-top:3em;margin-bottom:3em}.card.svelte-7rvkai{padding:3em 2.4em;border-radius:10px;height:100%;box-shadow:rgba(17, 17, 26, 0.05) 0px 4px 16px,\r\n            rgba(17, 17, 26, 0.05) 0px 8px 32px;transition:box-shadow 0.175s ease;transition:box-shadow 0.175s ease}.card.svelte-7rvkai:hover{box-shadow:rgba(0, 0, 0, 0.16) 0px 1px 4px}.title.svelte-7rvkai{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5em}h4.svelte-7rvkai{font-size:1.1em;font-weight:600}h5.svelte-7rvkai{font-size:1.5em;font-weight:600}",
-	map: "{\"version\":3,\"file\":\"Faq.svelte\",\"sources\":[\"Faq.svelte\"],\"sourcesContent\":[\"<script>\\r\\n    let open = true;\\r\\n    let toggleOpen = () => {\\r\\n        open = !open;\\r\\n    };\\r\\n</script>\\r\\n\\r\\n<article>\\r\\n    <div class=\\\"card\\\">\\r\\n        <div class=\\\"title\\\">\\r\\n            <h4>What other designs do you do?</h4>\\r\\n            {#if open}\\r\\n                <h5 on:click={toggleOpen}>-</h5>\\r\\n            {:else}\\r\\n                <h5 on:click={toggleOpen}>+</h5>\\r\\n            {/if}\\r\\n        </div>\\r\\n        {#if open}\\r\\n            <p>\\r\\n                We offer the whole spectrun of graphic design services. We\\r\\n                specialize in brand development. We help you design your logo\\r\\n                and develop your brand's identity. We then design all your\\r\\n                marketing material like business cards, fliers, posters and\\r\\n                everything in between.\\r\\n            </p>\\r\\n        {/if}\\r\\n    </div>\\r\\n</article>\\r\\n\\r\\n<style>\\r\\n    article {\\r\\n        width: 90%;\\r\\n        max-width: 1100px;\\r\\n        margin: auto;\\r\\n        margin-top: 3em;\\r\\n        margin-bottom: 3em;\\r\\n    }\\r\\n\\r\\n    .card {\\r\\n        padding: 3em 2.4em;\\r\\n        border-radius: 10px;\\r\\n        height: 100%;\\r\\n        box-shadow: rgba(17, 17, 26, 0.05) 0px 4px 16px,\\r\\n            rgba(17, 17, 26, 0.05) 0px 8px 32px;\\r\\n        transition: box-shadow 0.175s ease;\\r\\n        transition: box-shadow 0.175s ease;\\r\\n    }\\r\\n\\r\\n    .card:hover {\\r\\n        box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;\\r\\n    }\\r\\n\\r\\n    .title {\\r\\n        display: flex;\\r\\n        align-items: center;\\r\\n        justify-content: space-between;\\r\\n        margin-bottom: 0.5em;\\r\\n    }\\r\\n\\r\\n    h4 {\\r\\n        font-size: 1.1em;\\r\\n        font-weight: 600;\\r\\n    }\\r\\n\\r\\n    h5 {\\r\\n        font-size: 1.5em;\\r\\n        font-weight: 600;\\r\\n    }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AA8BI,OAAO,cAAC,CAAC,AACL,KAAK,CAAE,GAAG,CACV,SAAS,CAAE,MAAM,CACjB,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,GAAG,CACf,aAAa,CAAE,GAAG,AACtB,CAAC,AAED,KAAK,cAAC,CAAC,AACH,OAAO,CAAE,GAAG,CAAC,KAAK,CAClB,aAAa,CAAE,IAAI,CACnB,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,KAAK,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,GAAG,CAAC,IAAI,CAAC;YAC5C,KAAK,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,GAAG,CAAC,IAAI,CACvC,UAAU,CAAE,UAAU,CAAC,MAAM,CAAC,IAAI,CAClC,UAAU,CAAE,UAAU,CAAC,MAAM,CAAC,IAAI,AACtC,CAAC,AAED,mBAAK,MAAM,AAAC,CAAC,AACT,UAAU,CAAE,KAAK,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,GAAG,CAAC,GAAG,AAC/C,CAAC,AAED,MAAM,cAAC,CAAC,AACJ,OAAO,CAAE,IAAI,CACb,WAAW,CAAE,MAAM,CACnB,eAAe,CAAE,aAAa,CAC9B,aAAa,CAAE,KAAK,AACxB,CAAC,AAED,EAAE,cAAC,CAAC,AACA,SAAS,CAAE,KAAK,CAChB,WAAW,CAAE,GAAG,AACpB,CAAC,AAED,EAAE,cAAC,CAAC,AACA,SAAS,CAAE,KAAK,CAChB,WAAW,CAAE,GAAG,AACpB,CAAC\"}"
+	code: "article.svelte-zd8pij.svelte-zd8pij{padding-top:1.2rem;padding-bottom:3rem}.text-align.svelte-zd8pij.svelte-zd8pij{text-align:center}h2.svelte-zd8pij.svelte-zd8pij{line-height:1.5;font-size:2.4em;font-weight:700;color:rgb(156, 156, 156);max-width:530px;margin:auto;margin-top:2em}h3.svelte-zd8pij.svelte-zd8pij{text-transform:capitalize;margin-top:1.1em;margin-bottom:0.125em;line-height:1.5;font-size:1.2em;font-weight:600;color:rgb(87, 87, 87)}p.svelte-zd8pij.svelte-zd8pij{margin-top:1.2rem;font-size:1.2em;line-height:1.5;color:rgb(83, 83, 83)}.card.svelte-zd8pij p.svelte-zd8pij{margin-top:1.2rem;font-size:1em;line-height:1.75;color:rgb(83, 83, 83)}.width.svelte-zd8pij.svelte-zd8pij{width:85%;max-width:1100px;margin:0 auto}.services.svelte-zd8pij.svelte-zd8pij{display:grid;grid-template-columns:1fr;grid-row-gap:3em;margin-top:2em}.card.svelte-zd8pij.svelte-zd8pij{padding:1.2rem;border-radius:12px;box-shadow:0 2.5px 2.2px rgba(0, 0, 0, 0.07),\n            0 10px 5.3px rgba(0, 0, 0, 0.039),\n            0 24.1px 10px rgba(0, 0, 0, 0.035),\n            0 46.9px 17.9px rgba(0, 0, 0, 0.034),\n            0 81.7px 33.4px rgba(0, 0, 0, 0.034),\n            0 118px 80px rgba(0, 0, 0, 0.03)}.img-div.svelte-zd8pij.svelte-zd8pij{padding:0.5rem;background-color:rgba(0, 0, 0, 0.05125);width:auto;border-radius:8px}img.svelte-zd8pij.svelte-zd8pij{width:100%;max-width:50px;display:block}span.svelte-zd8pij.svelte-zd8pij{display:block;margin:auto;margin-top:1.5em;background-color:rgb(156, 156, 156);height:5px;width:136px}@media(min-width: 800px){article.svelte-zd8pij.svelte-zd8pij{padding-top:1.2rem;padding-bottom:6rem}.services.svelte-zd8pij.svelte-zd8pij{display:grid;grid-template-columns:repeat(3, 1fr);grid-gap:1em;margin-top:2.5em}}",
+	map: "{\"version\":3,\"file\":\"Services.svelte\",\"sources\":[\"Services.svelte\"],\"sourcesContent\":[\"<div class=\\\"width\\\">\\n    <h2 class=\\\"text-align\\\">Our services</h2>\\n    <p class=\\\"text-align\\\">\\n        We offer various services to help start-ups and corporates communicate\\n        with their customers.\\n    </p>\\n</div>\\n<span />\\n<article class=\\\"width services\\\">\\n    <div class=\\\"card\\\">\\n        <div class=\\\"img-div\\\">\\n            <img\\n                src=\\\"images/graphic-design-layout.svg\\\"\\n                alt=\\\"web development icon\\\"\\n            />\\n        </div>\\n        <h3>Graphic design</h3>\\n        <p>\\n            Skillful design elevates your brand. It helps to tell your brand\\n            story in a beautiful and attractive way. Good printing is as\\n            important as the design itself it not more.\\n        </p>\\n    </div>\\n    <div class=\\\"card\\\">\\n        <div class=\\\"img-div\\\">\\n            <img src=\\\"images/web-design-icon.svg\\\" alt=\\\"web design icon\\\" />\\n        </div>\\n        <h3>Branding</h3>\\n        <p>\\n            Your customers expect to find you online. You need a website to take\\n            your brand online. A good website should have that look and feel\\n            that represents your brand.\\n        </p>\\n    </div>\\n    <div class=\\\"card\\\">\\n        <div class=\\\"img-div\\\">\\n            <img src=\\\"images/web-icon.svg\\\" alt=\\\"web design icon\\\" />\\n        </div>\\n        <h3>Web design</h3>\\n        <p>\\n            Your customers expect to find you online. You need a website to take\\n            your brand online. A good website should have that look and feel\\n            that represents your brand.\\n        </p>\\n    </div>\\n</article>\\n\\n<style>\\n    article {\\n        padding-top: 1.2rem;\\n        padding-bottom: 3rem;\\n    }\\n\\n    .text-align {\\n        text-align: center;\\n    }\\n\\n    h2 {\\n        line-height: 1.5;\\n        font-size: 2.4em;\\n        font-weight: 700;\\n        color: rgb(156, 156, 156);\\n        max-width: 530px;\\n        margin: auto;\\n        margin-top: 2em;\\n    }\\n\\n    h3 {\\n        text-transform: capitalize;\\n        margin-top: 1.1em;\\n        margin-bottom: 0.125em;\\n        line-height: 1.5;\\n        font-size: 1.2em;\\n        font-weight: 600;\\n        color: rgb(87, 87, 87);\\n    }\\n\\n    p {\\n        margin-top: 1.2rem;\\n        font-size: 1.2em;\\n        line-height: 1.5;\\n        color: rgb(83, 83, 83);\\n    }\\n\\n    .card p {\\n        margin-top: 1.2rem;\\n        font-size: 1em;\\n        line-height: 1.75;\\n        color: rgb(83, 83, 83);\\n    }\\n\\n    .width {\\n        width: 85%;\\n        max-width: 1100px;\\n        margin: 0 auto;\\n        /* text-align: center; */\\n    }\\n\\n    .services {\\n        display: grid;\\n        grid-template-columns: 1fr;\\n        grid-row-gap: 3em;\\n        margin-top: 2em;\\n    }\\n\\n    .card {\\n        padding: 1.2rem;\\n        border-radius: 12px;\\n        box-shadow: 0 2.5px 2.2px rgba(0, 0, 0, 0.07),\\n            0 10px 5.3px rgba(0, 0, 0, 0.039),\\n            0 24.1px 10px rgba(0, 0, 0, 0.035),\\n            0 46.9px 17.9px rgba(0, 0, 0, 0.034),\\n            0 81.7px 33.4px rgba(0, 0, 0, 0.034),\\n            0 118px 80px rgba(0, 0, 0, 0.03);\\n    }\\n\\n    .img-div {\\n        padding: 0.5rem;\\n        background-color: rgba(0, 0, 0, 0.05125);\\n        width: auto;\\n        border-radius: 8px;\\n    }\\n\\n    img {\\n        width: 100%;\\n        max-width: 50px;\\n        display: block;\\n    }\\n\\n    span {\\n        display: block;\\n        margin: auto;\\n        margin-top: 1.5em;\\n        background-color: rgb(156, 156, 156);\\n        height: 5px;\\n        width: 136px;\\n    }\\n\\n    @media (min-width: 800px) {\\n        article {\\n            padding-top: 1.2rem;\\n            padding-bottom: 6rem;\\n        }\\n\\n        .services {\\n            display: grid;\\n            grid-template-columns: repeat(3, 1fr);\\n            grid-gap: 1em;\\n            margin-top: 2.5em;\\n        }\\n    }\\n</style>\\n\"],\"names\":[],\"mappings\":\"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\"}"
 };
 
-const Faq = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-
+const Services = create_ssr_component(($$result, $$props, $$bindings, slots) => {
 	$$result.css.add(css$1);
 
-	return `<article class="${"svelte-7rvkai"}"><div class="${"card svelte-7rvkai"}"><div class="${"title svelte-7rvkai"}"><h4 class="${"svelte-7rvkai"}">What other designs do you do?</h4>
-            ${ `<h5 class="${"svelte-7rvkai"}">-</h5>`
-	}</div>
-        ${ `<p>We offer the whole spectrun of graphic design services. We
-                specialize in brand development. We help you design your logo
-                and develop your brand&#39;s identity. We then design all your
-                marketing material like business cards, fliers, posters and
-                everything in between.
-            </p>`
-	}</div>
+	return `<div class="${"width svelte-zd8pij"}"><h2 class="${"text-align svelte-zd8pij"}">Our services</h2>
+    <p class="${"text-align svelte-zd8pij"}">We offer various services to help start-ups and corporates communicate
+        with their customers.
+    </p></div>
+<span class="${"svelte-zd8pij"}"></span>
+<article class="${"width services svelte-zd8pij"}"><div class="${"card svelte-zd8pij"}"><div class="${"img-div svelte-zd8pij"}"><img src="${"images/graphic-design-layout.svg"}" alt="${"web development icon"}" class="${"svelte-zd8pij"}"></div>
+        <h3 class="${"svelte-zd8pij"}">Graphic design</h3>
+        <p class="${"svelte-zd8pij"}">Skillful design elevates your brand. It helps to tell your brand
+            story in a beautiful and attractive way. Good printing is as
+            important as the design itself it not more.
+        </p></div>
+    <div class="${"card svelte-zd8pij"}"><div class="${"img-div svelte-zd8pij"}"><img src="${"images/web-design-icon.svg"}" alt="${"web design icon"}" class="${"svelte-zd8pij"}"></div>
+        <h3 class="${"svelte-zd8pij"}">Branding</h3>
+        <p class="${"svelte-zd8pij"}">Your customers expect to find you online. You need a website to take
+            your brand online. A good website should have that look and feel
+            that represents your brand.
+        </p></div>
+    <div class="${"card svelte-zd8pij"}"><div class="${"img-div svelte-zd8pij"}"><img src="${"images/web-icon.svg"}" alt="${"web design icon"}" class="${"svelte-zd8pij"}"></div>
+        <h3 class="${"svelte-zd8pij"}">Web design</h3>
+        <p class="${"svelte-zd8pij"}">Your customers expect to find you online. You need a website to take
+            your brand online. A good website should have that look and feel
+            that represents your brand.
+        </p></div>
 </article>`;
+});
+
+/* src/components/Contacts.svelte generated by Svelte v3.31.2 */
+
+const css$2 = {
+	code: "main.svelte-y2cxkn{width:85%;max-width:800px;margin:auto;margin-top:3em}h2.svelte-y2cxkn{line-height:1.2em;font-size:2.4em;font-weight:700;color:rgb(156, 156, 156);max-width:530px;margin:0 auto;margin-bottom:1.1em}p.svelte-y2cxkn{margin:auto;font-size:1em;line-height:1.75em;color:#626262;margin-bottom:3em}.text-align.svelte-y2cxkn{text-align:center}.btn-div.svelte-y2cxkn{margin-left:0}.btn.svelte-y2cxkn{display:flex;justify-content:center}a.svelte-y2cxkn{text-decoration:none}.contact.svelte-y2cxkn{margin-top:3em}",
+	map: "{\"version\":3,\"file\":\"Contacts.svelte\",\"sources\":[\"Contacts.svelte\"],\"sourcesContent\":[\"<script>\\n    import Button from \\\"./Button.svelte\\\";\\n</script>\\n\\n<main>\\n    <h2 class=\\\"text-align\\\">We're here for you. Email us or make a call.</h2>\\n    <p class=\\\"text-align\\\">\\n        We're excited to work with you. Your brand's journey to the next level\\n        begins here.\\n    </p>\\n    <div class=\\\"btn-div btn\\\">\\n        <a href=\\\"mailto:dkibui@visign.co.ke\\\"><Button value=\\\"Email Us\\\" /></a>\\n    </div>\\n    <p class=\\\"text-align contact\\\">\\n        Cell: +254 728 49 4090 <br /> Email: dkibui@visign.co.ke<br />Office:\\n        6th Floor, Westend Towers.<br />Westlands Nairobi.\\n    </p>\\n</main>\\n\\n<style>\\n    main {\\n        width: 85%;\\n        max-width: 800px;\\n        margin: auto;\\n        margin-top: 3em;\\n        /* background-color: rgb(151, 151, 151); */\\n    }\\n\\n    h2 {\\n        line-height: 1.2em;\\n        font-size: 2.4em;\\n        font-weight: 700;\\n        color: rgb(156, 156, 156);\\n        max-width: 530px;\\n        margin: 0 auto;\\n        margin-bottom: 1.1em;\\n    }\\n\\n    p {\\n        margin: auto;\\n        font-size: 1em;\\n        line-height: 1.75em;\\n        color: #626262;\\n        margin-bottom: 3em;\\n    }\\n\\n    .text-align {\\n        text-align: center;\\n    }\\n\\n    .btn-div {\\n        margin-left: 0;\\n    }\\n\\n    .btn {\\n        display: flex;\\n        justify-content: center;\\n    }\\n\\n    a {\\n        text-decoration: none;\\n    }\\n\\n    .contact {\\n        margin-top: 3em;\\n    }\\n</style>\\n\"],\"names\":[],\"mappings\":\"AAoBI,IAAI,cAAC,CAAC,AACF,KAAK,CAAE,GAAG,CACV,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,GAAG,AAEnB,CAAC,AAED,EAAE,cAAC,CAAC,AACA,WAAW,CAAE,KAAK,CAClB,SAAS,CAAE,KAAK,CAChB,WAAW,CAAE,GAAG,CAChB,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACzB,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,CAAC,CAAC,IAAI,CACd,aAAa,CAAE,KAAK,AACxB,CAAC,AAED,CAAC,cAAC,CAAC,AACC,MAAM,CAAE,IAAI,CACZ,SAAS,CAAE,GAAG,CACd,WAAW,CAAE,MAAM,CACnB,KAAK,CAAE,OAAO,CACd,aAAa,CAAE,GAAG,AACtB,CAAC,AAED,WAAW,cAAC,CAAC,AACT,UAAU,CAAE,MAAM,AACtB,CAAC,AAED,QAAQ,cAAC,CAAC,AACN,WAAW,CAAE,CAAC,AAClB,CAAC,AAED,IAAI,cAAC,CAAC,AACF,OAAO,CAAE,IAAI,CACb,eAAe,CAAE,MAAM,AAC3B,CAAC,AAED,CAAC,cAAC,CAAC,AACC,eAAe,CAAE,IAAI,AACzB,CAAC,AAED,QAAQ,cAAC,CAAC,AACN,UAAU,CAAE,GAAG,AACnB,CAAC\"}"
+};
+
+const Contacts = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+	$$result.css.add(css$2);
+
+	return `<main class="${"svelte-y2cxkn"}"><h2 class="${"text-align svelte-y2cxkn"}">We&#39;re here for you. Email us or make a call.</h2>
+    <p class="${"text-align svelte-y2cxkn"}">We&#39;re excited to work with you. Your brand&#39;s journey to the next level
+        begins here.
+    </p>
+    <div class="${"btn-div btn svelte-y2cxkn"}"><a href="${"mailto:dkibui@visign.co.ke"}" class="${"svelte-y2cxkn"}">${validate_component(Button, "Button").$$render($$result, { value: "Email Us" }, {}, {})}</a></div>
+    <p class="${"text-align contact svelte-y2cxkn"}">Cell: +254 728 49 4090 <br> Email: dkibui@visign.co.ke<br>Office:
+        6th Floor, Westend Towers.<br>Westlands Nairobi.
+    </p>
+</main>`;
 });
 
 /* src/routes/index.svelte generated by Svelte v3.31.2 */
 
-const css$2 = {
-	code: "main.svelte-1jjo27k.svelte-1jjo27k{width:80%;margin:auto;margin-top:3em}h1.svelte-1jjo27k.svelte-1jjo27k{margin-bottom:1.2em;font-size:1.5rem;text-transform:uppercase;font-weight:300;color:#1ae5c1}h2.svelte-1jjo27k.svelte-1jjo27k{line-height:1.2em;font-size:3em;font-weight:700;color:rgb(156, 156, 156);max-width:530px;margin:0 auto}.btn.svelte-1jjo27k.svelte-1jjo27k{display:flex;justify-content:center}h3.svelte-1jjo27k.svelte-1jjo27k{font-size:1.5rem;line-height:2.1rem;margin-bottom:1rem;font-weight:500}p.svelte-1jjo27k.svelte-1jjo27k{font-size:1em}.text-center.svelte-1jjo27k.svelte-1jjo27k{text-align:center}img.svelte-1jjo27k.svelte-1jjo27k{width:100%;display:block}.img-1.svelte-1jjo27k.svelte-1jjo27k{max-width:180px;width:auto;margin:0 auto;margin-bottom:4rem}.message.svelte-1jjo27k.svelte-1jjo27k{font-size:1.3em;color:#ffffff;margin-top:1em;text-align:center}.img-2.svelte-1jjo27k.svelte-1jjo27k{margin:0 auto;max-width:400px}.width.svelte-1jjo27k.svelte-1jjo27k{width:85%;margin:0 auto}.section-one.svelte-1jjo27k.svelte-1jjo27k{background-color:#5d7db8;padding:2.8em 0;margin-top:5em}.section-one-content.svelte-1jjo27k.svelte-1jjo27k{display:grid;grid-template-columns:1fr;grid-gap:1em;justify-content:center;align-items:center;padding:2em 0}.cards-wrapper.svelte-1jjo27k.svelte-1jjo27k{display:grid;grid-template-columns:1fr;width:90%;margin:3em auto}.card.svelte-1jjo27k.svelte-1jjo27k{padding:3em 3em;border-radius:10px;height:100%;transition:box-shadow 0.175s ease}.card.svelte-1jjo27k img.svelte-1jjo27k{display:block;max-width:90px;margin:0 auto;margin-bottom:1rem}@media(min-width: 800px){main.svelte-1jjo27k.svelte-1jjo27k{margin-top:4em}.width.svelte-1jjo27k.svelte-1jjo27k{max-width:1100px;margin:0 auto}.section-one.svelte-1jjo27k.svelte-1jjo27k{margin-top:6em}.message.svelte-1jjo27k.svelte-1jjo27k{font-size:1.75em;text-align:center}.cards-wrapper.svelte-1jjo27k.svelte-1jjo27k{margin:auto;grid-template-columns:repeat(2, 1fr);justify-content:center;align-items:center;margin-top:5em;margin-bottom:5em}}",
-	map: "{\"version\":3,\"file\":\"index.svelte\",\"sources\":[\"index.svelte\"],\"sourcesContent\":[\"<script>\\n\\timport Button from \\\"../components/Button.svelte\\\";\\n\\timport Faq from \\\"../components/Faq.svelte\\\";\\n\\t// let value = \\\"Our Work\\\";\\n</script>\\n\\n<svelte:head>\\n\\t<title>Job Ninja</title>\\n</svelte:head>\\n\\n<main>\\n\\t<h1 class=\\\"text-center\\\">We are the best design studio in Nairobi</h1>\\n\\t<h2 class=\\\"text-center\\\">Our business is to make yours look great</h2>\\n\\t<img\\n\\t\\tclass=\\\"img-1\\\"\\n\\t\\tsrc=\\\"images/visign-design-asset1.svg\\\"\\n\\t\\talt=\\\"visign design asset 1\\\"\\n\\t/>\\n\\t<div class=\\\"btn\\\">\\n\\t\\t<Button value=\\\"Our Work\\\" />\\n\\t</div>\\n</main>\\n\\n<section class=\\\"section-one\\\">\\n\\t<div class=\\\"section-one-content width\\\">\\n\\t\\t<img\\n\\t\\t\\tclass=\\\"img-2\\\"\\n\\t\\t\\tsrc=\\\"images/banner-image.png\\\"\\n\\t\\t\\talt=\\\"layout design banner\\\"\\n\\t\\t/>\\n\\t\\t<p class=\\\"message text-center\\\">\\n\\t\\t\\tWe offer brand centred graphic design and web development services\\n\\t\\t\\tto SMEs and corporates in Nairobi.\\n\\t\\t</p>\\n\\t</div>\\n</section>\\n\\n<section class=\\\"cards-wrapper width\\\">\\n\\t<article class=\\\"card text-center\\\">\\n\\t\\t<img src=\\\"images/online.svg\\\" alt=\\\"solid globe icon\\\" />\\n\\t\\t<h3>Take your business to your customers. Go online in style.</h3>\\n\\t\\t<p>\\n\\t\\t\\tYour customers are looking for you online. Let us design a modern\\n\\t\\t\\twebsite to represent your brand.\\n\\t\\t</p>\\n\\t</article>\\n\\t<article class=\\\"card text-center\\\">\\n\\t\\t<img src=\\\"images/design.svg\\\" alt=\\\"solid globe icon\\\" />\\n\\t\\t<h3>Make your customers know you. Share your story.</h3>\\n\\t\\t<p>\\n\\t\\t\\tTell us your brand story and we will transform your marketing\\n\\t\\t\\tmaterial. It will serve your brand well.\\n\\t\\t</p>\\n\\t</article>\\n</section>\\n<Faq />\\n\\n<style>\\n\\tmain {\\n\\t\\twidth: 80%;\\n\\t\\tmargin: auto;\\n\\t\\tmargin-top: 3em;\\n\\t}\\n\\n\\th1 {\\n\\t\\tmargin-bottom: 1.2em;\\n\\t\\tfont-size: 1.5rem;\\n\\t\\ttext-transform: uppercase;\\n\\t\\tfont-weight: 300;\\n\\t\\tcolor: #1ae5c1;\\n\\t}\\n\\n\\th2 {\\n\\t\\tline-height: 1.2em;\\n\\t\\tfont-size: 3em;\\n\\t\\tfont-weight: 700;\\n\\t\\tcolor: rgb(156, 156, 156);\\n\\t\\tmax-width: 530px;\\n\\t\\tmargin: 0 auto;\\n\\t}\\n\\n\\t.btn {\\n\\t\\tdisplay: flex;\\n\\t\\tjustify-content: center;\\n\\t}\\n\\n\\th3 {\\n\\t\\tfont-size: 1.5rem;\\n\\t\\tline-height: 2.1rem;\\n\\t\\tmargin-bottom: 1rem;\\n\\t\\tfont-weight: 500;\\n\\t}\\n\\n\\tp {\\n\\t\\tfont-size: 1em;\\n\\t}\\n\\n\\t.text-center {\\n\\t\\ttext-align: center;\\n\\t}\\n\\n\\timg {\\n\\t\\twidth: 100%;\\n\\t\\tdisplay: block;\\n\\t}\\n\\n\\t.img-1 {\\n\\t\\tmax-width: 180px;\\n\\t\\twidth: auto;\\n\\t\\tmargin: 0 auto;\\n\\t\\tmargin-bottom: 4rem;\\n\\t}\\n\\n\\t.message {\\n\\t\\tfont-size: 1.3em;\\n\\t\\tcolor: #ffffff;\\n\\t\\tmargin-top: 1em;\\n\\t\\ttext-align: center;\\n\\t}\\n\\n\\t.img-2 {\\n\\t\\tmargin: 0 auto;\\n\\t\\tmax-width: 400px;\\n\\t}\\n\\n\\t.width {\\n\\t\\twidth: 85%;\\n\\t\\tmargin: 0 auto;\\n\\t}\\n\\n\\t.section-one {\\n\\t\\tbackground-color: #5d7db8;\\n\\t\\tpadding: 2.8em 0;\\n\\t\\tmargin-top: 5em;\\n\\t}\\n\\n\\t.section-one-content {\\n\\t\\tdisplay: grid;\\n\\t\\tgrid-template-columns: 1fr;\\n\\t\\tgrid-gap: 1em;\\n\\t\\tjustify-content: center;\\n\\t\\talign-items: center;\\n\\t\\tpadding: 2em 0;\\n\\t}\\n\\n\\t.cards-wrapper {\\n\\t\\tdisplay: grid;\\n\\t\\tgrid-template-columns: 1fr;\\n\\t\\twidth: 90%;\\n\\t\\tmargin: 3em auto;\\n\\t\\t/* grid-row-gap: 2em; */\\n\\t}\\n\\n\\t.card {\\n\\t\\tpadding: 3em 3em;\\n\\t\\tborder-radius: 10px;\\n\\t\\theight: 100%;\\n\\t\\t/* box-shadow: rgba(17, 17, 26, 0.05) 0px 4px 16px,\\n\\t\\t\\trgba(17, 17, 26, 0.05) 0px 8px 32px; */\\n\\t\\ttransition: box-shadow 0.175s ease;\\n\\t}\\n\\t/* \\n\\t.card:hover {\\n\\t\\t box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px; \\n\\t\\tbox-shadow: rgba(17, 17, 26, 0.05) 0px 4px 16px,\\n\\t\\t\\trgba(17, 17, 26, 0.05) 0px 8px 32px;\\n\\t} \\n*/\\n\\n\\t.card img {\\n\\t\\tdisplay: block;\\n\\t\\tmax-width: 90px;\\n\\t\\tmargin: 0 auto;\\n\\t\\tmargin-bottom: 1rem;\\n\\t}\\n\\n\\t@media (min-width: 800px) {\\n\\t\\tmain {\\n\\t\\t\\tmargin-top: 4em;\\n\\t\\t}\\n\\n\\t\\t.width {\\n\\t\\t\\tmax-width: 1100px;\\n\\t\\t\\tmargin: 0 auto;\\n\\t\\t}\\n\\n\\t\\t.section-one {\\n\\t\\t\\tmargin-top: 6em;\\n\\t\\t}\\n\\n\\t\\t/* .section-one-content {\\n\\t\\t\\tgrid-template-columns: repeat(2, auto);\\n\\t\\t\\tgrid-gap: 3em;\\n\\t\\t} */\\n\\n\\t\\t.message {\\n\\t\\t\\tfont-size: 1.75em;\\n\\t\\t\\ttext-align: center;\\n\\t\\t}\\n\\n\\t\\t.cards-wrapper {\\n\\t\\t\\tmargin: auto;\\n\\t\\t\\tgrid-template-columns: repeat(2, 1fr);\\n\\t\\t\\tjustify-content: center;\\n\\t\\t\\talign-items: center;\\n\\t\\t\\t/* grid-gap: 3em; */\\n\\t\\t\\tmargin-top: 5em;\\n\\t\\t\\tmargin-bottom: 5em;\\n\\t\\t}\\n\\t}\\n</style>\\n\"],\"names\":[],\"mappings\":\"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\"}"
+const css$3 = {
+	code: "main.svelte-rr5k7n.svelte-rr5k7n{width:80%;margin:auto;margin-top:3em}h1.svelte-rr5k7n.svelte-rr5k7n{font-size:1.5rem;text-transform:uppercase;font-weight:300;color:#1ae5c1}h2.svelte-rr5k7n.svelte-rr5k7n{line-height:1.5;font-size:2.4em;font-weight:700;color:rgb(156, 156, 156);max-width:530px;margin:1em auto 0 auto}.hero.svelte-rr5k7n.svelte-rr5k7n{font-size:3em;line-height:1.4}.btn.svelte-rr5k7n.svelte-rr5k7n{display:flex;justify-content:center}p.svelte-rr5k7n.svelte-rr5k7n{font-size:1.2em;line-height:1.5;color:rgb(83, 83, 83)}.article-one.svelte-rr5k7n p.svelte-rr5k7n{margin:auto;margin-top:2rem;width:100%}.article-two.svelte-rr5k7n.svelte-rr5k7n{margin-bottom:2rem}.text-center.svelte-rr5k7n.svelte-rr5k7n{text-align:center}img.svelte-rr5k7n.svelte-rr5k7n{width:100%;display:block}.img-1.svelte-rr5k7n.svelte-rr5k7n{max-width:180px;width:auto;margin:0 auto;margin-bottom:4rem}.message.svelte-rr5k7n.svelte-rr5k7n{font-size:1.3em;color:#ffffff;margin-top:1em;text-align:center}.img-2.svelte-rr5k7n.svelte-rr5k7n{margin:0 auto;max-width:400px}.width.svelte-rr5k7n.svelte-rr5k7n{width:85%;margin:0 auto}.section-one.svelte-rr5k7n.svelte-rr5k7n{background-color:#5d7db8;padding:2.8em 0;margin-top:5rem;margin-bottom:3.5rem}.section-one-content.svelte-rr5k7n.svelte-rr5k7n{display:grid;grid-template-columns:1fr;grid-gap:1em;justify-content:center;align-items:center;padding:2em 0}.width.svelte-rr5k7n.svelte-rr5k7n{width:85%;max-width:800px;margin:0 auto;text-align:center}span.svelte-rr5k7n.svelte-rr5k7n{display:block;margin:auto;margin-top:1.5em;background-color:rgb(156, 156, 156);height:5px;width:136px}.article-two.svelte-rr5k7n.svelte-rr5k7n{display:grid;grid-template-columns:1fr 1fr;grid-gap:1em;margin-top:5.5em}img.svelte-rr5k7n.svelte-rr5k7n{width:100%}@media(min-width: 800px){main.svelte-rr5k7n.svelte-rr5k7n{margin-top:4em}.width.svelte-rr5k7n.svelte-rr5k7n{width:85%;max-width:1100px;margin:0 auto}.section-one.svelte-rr5k7n.svelte-rr5k7n{margin-top:6em;margin-bottom:5em}.article-one.svelte-rr5k7n p.svelte-rr5k7n{width:80%}.article-two.svelte-rr5k7n.svelte-rr5k7n{margin-bottom:3rem}.message.svelte-rr5k7n.svelte-rr5k7n{font-size:1.75em;text-align:center}}",
+	map: "{\"version\":3,\"file\":\"index.svelte\",\"sources\":[\"index.svelte\"],\"sourcesContent\":[\"<script>\\n  import Button from \\\"../components/Button.svelte\\\";\\n  import Services from \\\"../components/Services.svelte\\\";\\n  import Contacts from \\\"../components/Contacts.svelte\\\";\\n</script>\\n\\n<svelte:head>\\n  <title>Visign Home</title>\\n</svelte:head>\\n\\n<main>\\n  <h1 class=\\\"text-center\\\">We are the best design studio in Nairobi</h1>\\n  <h2 class=\\\"hero text-center\\\">Our business is to make yours look great</h2>\\n  <img\\n    class=\\\"img-1\\\"\\n    src=\\\"images/visign-design-asset1.svg\\\"\\n    alt=\\\"visign design asset 1\\\"\\n  />\\n  <div class=\\\"btn\\\">\\n    <Button value=\\\"Our Services\\\" />\\n  </div>\\n</main>\\n\\n<section class=\\\"section-one\\\">\\n  <div class=\\\"section-one-content width\\\">\\n    <img\\n      class=\\\"img-2\\\"\\n      src=\\\"images/banner-image.png\\\"\\n      alt=\\\"layout design banner\\\"\\n    />\\n    <p class=\\\"message text-center\\\">\\n      We offer brand centred graphic design and web development services to SMEs\\n      and corporates in Nairobi.\\n    </p>\\n  </div>\\n</section>\\n\\n<section class=\\\"width section-two\\\">\\n  <article class=\\\"article-one\\\">\\n    <h2>Do you want to brand your business?</h2>\\n    <p>\\n      Consistent visual branding is hard. To get your branding right, you will\\n      need a branding guide. Let us help you get started with your branding. We\\n      make it easier for you to be unique.\\n    </p>\\n    <span />\\n  </article>\\n  <article class=\\\"article-two\\\">\\n    <div class=\\\"card\\\">\\n      <img src=\\\"images/packaging-branding.jpg\\\" alt=\\\"package branding\\\" />\\n    </div>\\n    <div class=\\\"card\\\">\\n      <img src=\\\"images/logo-process.jpg\\\" alt=\\\"logo design process\\\" />\\n    </div>\\n  </article>\\n</section>\\n<Services id=\\\"services\\\" />\\n<Contacts />\\n\\n<style>\\n  main {\\n    width: 80%;\\n    margin: auto;\\n    margin-top: 3em;\\n  }\\n\\n  h1 {\\n    font-size: 1.5rem;\\n    text-transform: uppercase;\\n    font-weight: 300;\\n    color: #1ae5c1;\\n  }\\n\\n  h2 {\\n    line-height: 1.5;\\n    font-size: 2.4em;\\n    font-weight: 700;\\n    color: rgb(156, 156, 156);\\n    max-width: 530px;\\n    margin: 1em auto 0 auto;\\n  }\\n\\n  .hero {\\n    font-size: 3em;\\n    line-height: 1.4;\\n  }\\n\\n  .btn {\\n    display: flex;\\n    justify-content: center;\\n  }\\n\\n  p {\\n    font-size: 1.2em;\\n    line-height: 1.5;\\n    color: rgb(83, 83, 83);\\n  }\\n\\n  .article-one p {\\n    margin: auto;\\n    margin-top: 2rem;\\n    width: 100%;\\n  }\\n\\n  .article-two {\\n    margin-bottom: 2rem;\\n  }\\n\\n  .text-center {\\n    text-align: center;\\n  }\\n\\n  img {\\n    width: 100%;\\n    display: block;\\n  }\\n\\n  .img-1 {\\n    max-width: 180px;\\n    width: auto;\\n    margin: 0 auto;\\n    margin-bottom: 4rem;\\n  }\\n\\n  .message {\\n    font-size: 1.3em;\\n    color: #ffffff;\\n    margin-top: 1em;\\n    text-align: center;\\n  }\\n\\n  .img-2 {\\n    margin: 0 auto;\\n    max-width: 400px;\\n  }\\n\\n  .width {\\n    width: 85%;\\n    margin: 0 auto;\\n  }\\n\\n  .section-one {\\n    background-color: #5d7db8;\\n    padding: 2.8em 0;\\n    margin-top: 5rem;\\n    margin-bottom: 3.5rem;\\n  }\\n\\n  .section-one-content {\\n    display: grid;\\n    grid-template-columns: 1fr;\\n    grid-gap: 1em;\\n    justify-content: center;\\n    align-items: center;\\n    padding: 2em 0;\\n  }\\n\\n  .width {\\n    width: 85%;\\n    max-width: 800px;\\n    margin: 0 auto;\\n    text-align: center;\\n  }\\n\\n  span {\\n    display: block;\\n    margin: auto;\\n    margin-top: 1.5em;\\n    background-color: rgb(156, 156, 156);\\n    height: 5px;\\n    width: 136px;\\n  }\\n\\n  .article-two {\\n    display: grid;\\n    grid-template-columns: 1fr 1fr;\\n    grid-gap: 1em;\\n    margin-top: 5.5em;\\n  }\\n\\n  img {\\n    width: 100%;\\n    /* max-width: 400px; */\\n  }\\n\\n  @media (min-width: 800px) {\\n    main {\\n      margin-top: 4em;\\n    }\\n\\n    .width {\\n      width: 85%;\\n      max-width: 1100px;\\n      margin: 0 auto;\\n    }\\n\\n    .section-one {\\n      margin-top: 6em;\\n      margin-bottom: 5em;\\n    }\\n\\n    .article-one p {\\n      width: 80%;\\n    }\\n\\n    .article-two {\\n      margin-bottom: 3rem;\\n    }\\n\\n    .message {\\n      font-size: 1.75em;\\n      text-align: center;\\n    }\\n  }\\n</style>\\n\"],\"names\":[],\"mappings\":\"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\"}"
 };
 
 const Routes = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-	$$result.css.add(css$2);
+	$$result.css.add(css$3);
 
-	return `${($$result.head += `${($$result.title = `<title>Job Ninja</title>`, "")}`, "")}
+	return `${($$result.head += `${($$result.title = `<title>Visign Home</title>`, "")}`, "")}
 
-<main class="${"svelte-1jjo27k"}"><h1 class="${"text-center svelte-1jjo27k"}">We are the best design studio in Nairobi</h1>
-	<h2 class="${"text-center svelte-1jjo27k"}">Our business is to make yours look great</h2>
-	<img class="${"img-1 svelte-1jjo27k"}" src="${"images/visign-design-asset1.svg"}" alt="${"visign design asset 1"}">
-	<div class="${"btn svelte-1jjo27k"}">${validate_component(Button, "Button").$$render($$result, { value: "Our Work" }, {}, {})}</div></main>
+<main class="${"svelte-rr5k7n"}"><h1 class="${"text-center svelte-rr5k7n"}">We are the best design studio in Nairobi</h1>
+  <h2 class="${"hero text-center svelte-rr5k7n"}">Our business is to make yours look great</h2>
+  <img class="${"img-1 svelte-rr5k7n"}" src="${"images/visign-design-asset1.svg"}" alt="${"visign design asset 1"}">
+  <div class="${"btn svelte-rr5k7n"}">${validate_component(Button, "Button").$$render($$result, { value: "Our Services" }, {}, {})}</div></main>
 
-<section class="${"section-one svelte-1jjo27k"}"><div class="${"section-one-content width svelte-1jjo27k"}"><img class="${"img-2 svelte-1jjo27k"}" src="${"images/banner-image.png"}" alt="${"layout design banner"}">
-		<p class="${"message text-center svelte-1jjo27k"}">We offer brand centred graphic design and web development services
-			to SMEs and corporates in Nairobi.
-		</p></div></section>
+<section class="${"section-one svelte-rr5k7n"}"><div class="${"section-one-content width svelte-rr5k7n"}"><img class="${"img-2 svelte-rr5k7n"}" src="${"images/banner-image.png"}" alt="${"layout design banner"}">
+    <p class="${"message text-center svelte-rr5k7n"}">We offer brand centred graphic design and web development services to SMEs
+      and corporates in Nairobi.
+    </p></div></section>
 
-<section class="${"cards-wrapper width svelte-1jjo27k"}"><article class="${"card text-center svelte-1jjo27k"}"><img src="${"images/online.svg"}" alt="${"solid globe icon"}" class="${"svelte-1jjo27k"}">
-		<h3 class="${"svelte-1jjo27k"}">Take your business to your customers. Go online in style.</h3>
-		<p class="${"svelte-1jjo27k"}">Your customers are looking for you online. Let us design a modern
-			website to represent your brand.
-		</p></article>
-	<article class="${"card text-center svelte-1jjo27k"}"><img src="${"images/design.svg"}" alt="${"solid globe icon"}" class="${"svelte-1jjo27k"}">
-		<h3 class="${"svelte-1jjo27k"}">Make your customers know you. Share your story.</h3>
-		<p class="${"svelte-1jjo27k"}">Tell us your brand story and we will transform your marketing
-			material. It will serve your brand well.
-		</p></article></section>
-${validate_component(Faq, "Faq").$$render($$result, {}, {}, {})}`;
+<section class="${"width section-two svelte-rr5k7n"}"><article class="${"article-one svelte-rr5k7n"}"><h2 class="${"svelte-rr5k7n"}">Do you want to brand your business?</h2>
+    <p class="${"svelte-rr5k7n"}">Consistent visual branding is hard. To get your branding right, you will
+      need a branding guide. Let us help you get started with your branding. We
+      make it easier for you to be unique.
+    </p>
+    <span class="${"svelte-rr5k7n"}"></span></article>
+  <article class="${"article-two svelte-rr5k7n"}"><div class="${"card"}"><img src="${"images/packaging-branding.jpg"}" alt="${"package branding"}" class="${"svelte-rr5k7n"}"></div>
+    <div class="${"card"}"><img src="${"images/logo-process.jpg"}" alt="${"logo design process"}" class="${"svelte-rr5k7n"}"></div></article></section>
+${validate_component(Services, "Services").$$render($$result, { id: "services" }, {}, {})}
+${validate_component(Contacts, "Contacts").$$render($$result, {}, {}, {})}`;
 });
 
 var component_0 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': Routes
+  __proto__: null,
+  'default': Routes
 });
 
 /* src/routes/contact.svelte generated by Svelte v3.31.2 */
 
-const css$3 = {
-	code: "main.svelte-ysu9od{width:85%;max-width:800px;margin:auto;margin-top:3em}h1.svelte-ysu9od{margin-bottom:1.2em;font-size:1.4rem;text-transform:uppercase;font-weight:300;color:#1ae5c1}h2.svelte-ysu9od{line-height:1.2em;font-size:2.4em;font-weight:700;color:rgb(156, 156, 156);max-width:530px;margin-bottom:1.1em}p.svelte-ysu9od{margin:auto;font-size:1em;line-height:1.75em;color:#626262;margin-bottom:3em}.text-align.svelte-ysu9od{text-align:left}.btn-div.svelte-ysu9od{margin-left:0}a.svelte-ysu9od{text-decoration:none}.contact.svelte-ysu9od{margin-top:3em}",
-	map: "{\"version\":3,\"file\":\"contact.svelte\",\"sources\":[\"contact.svelte\"],\"sourcesContent\":[\"<script>\\r\\n    import Button from \\\"../components/Button.svelte\\\";\\r\\n</script>\\r\\n\\r\\n<svelte:head>\\r\\n    <title>Contact</title>\\r\\n</svelte:head>\\r\\n\\r\\n<main>\\r\\n    <h1 class=\\\"text-align\\\">How can we help you today?</h1>\\r\\n    <h2 class=\\\"text-align\\\">We're here for you. Send us an email or call us.</h2>\\r\\n    <p class=\\\"text-align\\\">\\r\\n        When we started Visign Designs, we set out to provide professional brand\\r\\n        development, professional printing and supply of branded merchandise\\r\\n        services to SMEs at an affordable price. ​\\r\\n    </p>\\r\\n    <div class=\\\"btn-div\\\">\\r\\n        <a href=\\\"mailto:dkibui@visign.co.ke\\\"><Button value=\\\"Email Us\\\" /></a>\\r\\n    </div>\\r\\n    <p class=\\\"text-align contact\\\">\\r\\n        Cell: +254 728 49 4090 <br /> Email: dkibui@visign.co.ke<br />Office:\\r\\n        6th Floor, Westend Towers.<br />Westlands Nairobi.\\r\\n    </p>\\r\\n</main>\\r\\n\\r\\n<style>\\r\\n    main {\\r\\n        width: 85%;\\r\\n        max-width: 800px;\\r\\n        margin: auto;\\r\\n        margin-top: 3em;\\r\\n        /* background-color: rgb(151, 151, 151); */\\r\\n    }\\r\\n\\r\\n    h1 {\\r\\n        margin-bottom: 1.2em;\\r\\n        font-size: 1.4rem;\\r\\n        text-transform: uppercase;\\r\\n        font-weight: 300;\\r\\n        color: #1ae5c1;\\r\\n    }\\r\\n\\r\\n    h2 {\\r\\n        line-height: 1.2em;\\r\\n        font-size: 2.4em;\\r\\n        font-weight: 700;\\r\\n        color: rgb(156, 156, 156);\\r\\n        max-width: 530px;\\r\\n        margin-bottom: 1.1em;\\r\\n    }\\r\\n\\r\\n    p {\\r\\n        margin: auto;\\r\\n        font-size: 1em;\\r\\n        line-height: 1.75em;\\r\\n        color: #626262;\\r\\n        margin-bottom: 3em;\\r\\n    }\\r\\n\\r\\n    .text-align {\\r\\n        text-align: left;\\r\\n    }\\r\\n\\r\\n    .btn-div {\\r\\n        margin-left: 0;\\r\\n    }\\r\\n\\r\\n    a {\\r\\n        text-decoration: none;\\r\\n    }\\r\\n\\r\\n    .contact {\\r\\n        margin-top: 3em;\\r\\n    }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AA0BI,IAAI,cAAC,CAAC,AACF,KAAK,CAAE,GAAG,CACV,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,GAAG,AAEnB,CAAC,AAED,EAAE,cAAC,CAAC,AACA,aAAa,CAAE,KAAK,CACpB,SAAS,CAAE,MAAM,CACjB,cAAc,CAAE,SAAS,CACzB,WAAW,CAAE,GAAG,CAChB,KAAK,CAAE,OAAO,AAClB,CAAC,AAED,EAAE,cAAC,CAAC,AACA,WAAW,CAAE,KAAK,CAClB,SAAS,CAAE,KAAK,CAChB,WAAW,CAAE,GAAG,CAChB,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACzB,SAAS,CAAE,KAAK,CAChB,aAAa,CAAE,KAAK,AACxB,CAAC,AAED,CAAC,cAAC,CAAC,AACC,MAAM,CAAE,IAAI,CACZ,SAAS,CAAE,GAAG,CACd,WAAW,CAAE,MAAM,CACnB,KAAK,CAAE,OAAO,CACd,aAAa,CAAE,GAAG,AACtB,CAAC,AAED,WAAW,cAAC,CAAC,AACT,UAAU,CAAE,IAAI,AACpB,CAAC,AAED,QAAQ,cAAC,CAAC,AACN,WAAW,CAAE,CAAC,AAClB,CAAC,AAED,CAAC,cAAC,CAAC,AACC,eAAe,CAAE,IAAI,AACzB,CAAC,AAED,QAAQ,cAAC,CAAC,AACN,UAAU,CAAE,GAAG,AACnB,CAAC\"}"
+const css$4 = {
+	code: "main.svelte-bto9id{width:85%;max-width:800px;margin:auto;margin-top:3em}h1.svelte-bto9id{margin-bottom:1.2em;font-size:1.4rem;text-transform:uppercase;font-weight:300;color:#1ae5c1}h2.svelte-bto9id{line-height:1.5;font-size:2.4em;font-weight:700;color:rgb(156, 156, 156);max-width:530px;margin:0 auto;margin-bottom:1.1em}p.svelte-bto9id{margin:auto;font-size:1em;line-height:1.5;color:#626262;margin-bottom:3em}.text-align.svelte-bto9id{text-align:center}.btn-div.svelte-bto9id{margin-left:0}.btn.svelte-bto9id{display:flex;justify-content:center}a.svelte-bto9id{text-decoration:none}.contact.svelte-bto9id{margin-top:3em}",
+	map: "{\"version\":3,\"file\":\"contact.svelte\",\"sources\":[\"contact.svelte\"],\"sourcesContent\":[\"<script>\\r\\n    import Button from \\\"../components/Button.svelte\\\";\\r\\n</script>\\r\\n\\r\\n<svelte:head>\\r\\n    <title>Contact</title>\\r\\n</svelte:head>\\r\\n\\r\\n<main>\\r\\n    <h1 class=\\\"text-align\\\">How can we help you today?</h1>\\r\\n    <h2 class=\\\"text-align\\\">We're here for you. Send us an email or call us.</h2>\\r\\n    <p class=\\\"text-align\\\">\\r\\n        When we started Visign Designs, we set out to provide professional brand\\r\\n        development, professional printing and supply of branded merchandise\\r\\n        services to SMEs at an affordable price. ​\\r\\n    </p>\\r\\n    <div class=\\\"btn-div btn\\\">\\r\\n        <a href=\\\"mailto:dkibui@visign.co.ke\\\"><Button value=\\\"Email Us\\\" /></a>\\r\\n    </div>\\r\\n    <p class=\\\"text-align contact\\\">\\r\\n        Cell: +254 728 49 4090 <br /> Email: dkibui@visign.co.ke<br />Office:\\r\\n        6th Floor, Westend Towers.<br />Westlands Nairobi.\\r\\n    </p>\\r\\n</main>\\r\\n\\r\\n<style>\\r\\n    main {\\r\\n        width: 85%;\\r\\n        max-width: 800px;\\r\\n        margin: auto;\\r\\n        margin-top: 3em;\\r\\n        /* background-color: rgb(151, 151, 151); */\\r\\n    }\\r\\n\\r\\n    h1 {\\r\\n        margin-bottom: 1.2em;\\r\\n        font-size: 1.4rem;\\r\\n        text-transform: uppercase;\\r\\n        font-weight: 300;\\r\\n        color: #1ae5c1;\\r\\n    }\\r\\n\\r\\n    h2 {\\r\\n        line-height: 1.5;\\r\\n        font-size: 2.4em;\\r\\n        font-weight: 700;\\r\\n        color: rgb(156, 156, 156);\\r\\n        max-width: 530px;\\r\\n        margin: 0 auto;\\r\\n        margin-bottom: 1.1em;\\r\\n    }\\r\\n\\r\\n    p {\\r\\n        margin: auto;\\r\\n        font-size: 1em;\\r\\n        line-height: 1.5;\\r\\n        color: #626262;\\r\\n        margin-bottom: 3em;\\r\\n    }\\r\\n\\r\\n    .text-align {\\r\\n        text-align: center;\\r\\n    }\\r\\n\\r\\n    .btn-div {\\r\\n        margin-left: 0;\\r\\n    }\\r\\n\\r\\n    .btn {\\r\\n        display: flex;\\r\\n        justify-content: center;\\r\\n    }\\r\\n\\r\\n    a {\\r\\n        text-decoration: none;\\r\\n    }\\r\\n\\r\\n    .contact {\\r\\n        margin-top: 3em;\\r\\n    }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AA0BI,IAAI,cAAC,CAAC,AACF,KAAK,CAAE,GAAG,CACV,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,GAAG,AAEnB,CAAC,AAED,EAAE,cAAC,CAAC,AACA,aAAa,CAAE,KAAK,CACpB,SAAS,CAAE,MAAM,CACjB,cAAc,CAAE,SAAS,CACzB,WAAW,CAAE,GAAG,CAChB,KAAK,CAAE,OAAO,AAClB,CAAC,AAED,EAAE,cAAC,CAAC,AACA,WAAW,CAAE,GAAG,CAChB,SAAS,CAAE,KAAK,CAChB,WAAW,CAAE,GAAG,CAChB,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACzB,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,CAAC,CAAC,IAAI,CACd,aAAa,CAAE,KAAK,AACxB,CAAC,AAED,CAAC,cAAC,CAAC,AACC,MAAM,CAAE,IAAI,CACZ,SAAS,CAAE,GAAG,CACd,WAAW,CAAE,GAAG,CAChB,KAAK,CAAE,OAAO,CACd,aAAa,CAAE,GAAG,AACtB,CAAC,AAED,WAAW,cAAC,CAAC,AACT,UAAU,CAAE,MAAM,AACtB,CAAC,AAED,QAAQ,cAAC,CAAC,AACN,WAAW,CAAE,CAAC,AAClB,CAAC,AAED,IAAI,cAAC,CAAC,AACF,OAAO,CAAE,IAAI,CACb,eAAe,CAAE,MAAM,AAC3B,CAAC,AAED,CAAC,cAAC,CAAC,AACC,eAAe,CAAE,IAAI,AACzB,CAAC,AAED,QAAQ,cAAC,CAAC,AACN,UAAU,CAAE,GAAG,AACnB,CAAC\"}"
 };
 
 const Contact = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-	$$result.css.add(css$3);
+	$$result.css.add(css$4);
 
 	return `${($$result.head += `${($$result.title = `<title>Contact</title>`, "")}`, "")}
 
-<main class="${"svelte-ysu9od"}"><h1 class="${"text-align svelte-ysu9od"}">How can we help you today?</h1>
-    <h2 class="${"text-align svelte-ysu9od"}">We&#39;re here for you. Send us an email or call us.</h2>
-    <p class="${"text-align svelte-ysu9od"}">When we started Visign Designs, we set out to provide professional brand
+<main class="${"svelte-bto9id"}"><h1 class="${"text-align svelte-bto9id"}">How can we help you today?</h1>
+    <h2 class="${"text-align svelte-bto9id"}">We&#39;re here for you. Send us an email or call us.</h2>
+    <p class="${"text-align svelte-bto9id"}">When we started Visign Designs, we set out to provide professional brand
         development, professional printing and supply of branded merchandise
         services to SMEs at an affordable price. ​
     </p>
-    <div class="${"btn-div svelte-ysu9od"}"><a href="${"mailto:dkibui@visign.co.ke"}" class="${"svelte-ysu9od"}">${validate_component(Button, "Button").$$render($$result, { value: "Email Us" }, {}, {})}</a></div>
-    <p class="${"text-align contact svelte-ysu9od"}">Cell: +254 728 49 4090 <br> Email: dkibui@visign.co.ke<br>Office:
+    <div class="${"btn-div btn svelte-bto9id"}"><a href="${"mailto:dkibui@visign.co.ke"}" class="${"svelte-bto9id"}">${validate_component(Button, "Button").$$render($$result, { value: "Email Us" }, {}, {})}</a></div>
+    <p class="${"text-align contact svelte-bto9id"}">Cell: +254 728 49 4090 <br> Email: dkibui@visign.co.ke<br>Office:
         6th Floor, Westend Towers.<br>Westlands Nairobi.
     </p>
 </main>`;
 });
 
 var component_1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': Contact
+  __proto__: null,
+  'default': Contact
 });
 
 /* src/routes/about.svelte generated by Svelte v3.31.2 */
 
-const css$4 = {
+const css$5 = {
 	code: "main.svelte-1wx2bds{width:85%;max-width:800px;margin:auto;margin-top:3em}h1.svelte-1wx2bds{margin:auto;margin-bottom:1.2em;font-size:1.4rem;text-transform:uppercase;font-weight:300;color:#1ae5c1}h2.svelte-1wx2bds{line-height:1.2em;font-size:2.4em;font-weight:700;color:rgb(156, 156, 156);margin:0 auto;margin-bottom:1.1em}p.svelte-1wx2bds{margin:auto;font-size:1em;line-height:1.75em;color:#626262;margin-bottom:1em}.text-align.svelte-1wx2bds{text-align:left}.paragraph-align.svelte-1wx2bds{text-align:left}@media(min-width: 800px){h1.svelte-1wx2bds{max-width:800px}h2.svelte-1wx2bds{max-width:800px}}",
 	map: "{\"version\":3,\"file\":\"about.svelte\",\"sources\":[\"about.svelte\"],\"sourcesContent\":[\"<svelte:head>\\n\\t<title>About</title>\\n</svelte:head>\\n\\n<main>\\n\\t<h1 class=\\\"text-align\\\">Get to know visign.</h1>\\n\\t<h2 class=\\\"text-align\\\">We are a graphic and web design company.</h2>\\n\\t<p class=\\\"paragraph-align\\\">\\n\\t\\tWhen we started Visign Designs, we set out to provide professional brand\\n\\t\\tdevelopment, professional printing and supply of branded merchandise\\n\\t\\tservices to SMEs at an affordable price. ​\\n\\t</p>\\n\\t<p class=\\\"paragraph-align\\\">\\n\\t\\tGood creative design and branding helps create trust and confidence in a\\n\\t\\tcompany’s ability to meet the customers expectation. It gives SMEs a\\n\\t\\tfighting chance to compete with the established giants in their\\n\\t\\tindustry. Our process is based on the marketing principle If you’re not\\n\\t\\tdistinct; not unique; you’re a commodity.​\\n\\t</p>\\n\\n\\t<p class=\\\"paragraph-align\\\">\\n\\t\\tSkilful branding elevates and differentiates not just you, but your\\n\\t\\tclients, too. It tells a story; your story, in your own distinctive\\n\\t\\tvoice. We help you to be different and to come alive in your market’s\\n\\t\\timagination.\\n\\t</p>\\n\\t<p class=\\\"paragraph-align\\\">\\n\\t\\tChoose us for world-class designs, identity branding services,\\n\\t\\tinnovative marketing solutions and top quality printing. We help you\\n\\t\\tcreate market awareness that communicates your brand values in an\\n\\t\\tauthentic voice and in a manner that resonates clearly in the mind of\\n\\t\\tyour audience.​\\n\\t</p>\\n</main>\\n\\n<style>\\n\\tmain {\\n\\t\\twidth: 85%;\\n\\t\\tmax-width: 800px;\\n\\t\\tmargin: auto;\\n\\t\\tmargin-top: 3em;\\n\\t}\\n\\n\\th1 {\\n\\t\\tmargin: auto;\\n\\t\\tmargin-bottom: 1.2em;\\n\\t\\tfont-size: 1.4rem;\\n\\t\\ttext-transform: uppercase;\\n\\t\\tfont-weight: 300;\\n\\t\\tcolor: #1ae5c1;\\n\\t}\\n\\n\\th2 {\\n\\t\\tline-height: 1.2em;\\n\\t\\tfont-size: 2.4em;\\n\\t\\tfont-weight: 700;\\n\\t\\tcolor: rgb(156, 156, 156);\\n\\t\\tmargin: 0 auto;\\n\\t\\tmargin-bottom: 1.1em;\\n\\t}\\n\\n\\tp {\\n\\t\\tmargin: auto;\\n\\t\\tfont-size: 1em;\\n\\t\\tline-height: 1.75em;\\n\\t\\tcolor: #626262;\\n\\t\\tmargin-bottom: 1em;\\n\\t}\\n\\n\\t.text-align {\\n\\t\\ttext-align: left;\\n\\t}\\n\\n\\t.paragraph-align {\\n\\t\\ttext-align: left;\\n\\t}\\n\\n\\t@media (min-width: 800px) {\\n\\t\\th1 {\\n\\t\\t\\tmax-width: 800px;\\n\\t\\t}\\n\\n\\t\\th2 {\\n\\t\\t\\tmax-width: 800px;\\n\\t\\t}\\n\\t}\\n</style>\\n\"],\"names\":[],\"mappings\":\"AAoCC,IAAI,eAAC,CAAC,AACL,KAAK,CAAE,GAAG,CACV,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,GAAG,AAChB,CAAC,AAED,EAAE,eAAC,CAAC,AACH,MAAM,CAAE,IAAI,CACZ,aAAa,CAAE,KAAK,CACpB,SAAS,CAAE,MAAM,CACjB,cAAc,CAAE,SAAS,CACzB,WAAW,CAAE,GAAG,CAChB,KAAK,CAAE,OAAO,AACf,CAAC,AAED,EAAE,eAAC,CAAC,AACH,WAAW,CAAE,KAAK,CAClB,SAAS,CAAE,KAAK,CAChB,WAAW,CAAE,GAAG,CAChB,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACzB,MAAM,CAAE,CAAC,CAAC,IAAI,CACd,aAAa,CAAE,KAAK,AACrB,CAAC,AAED,CAAC,eAAC,CAAC,AACF,MAAM,CAAE,IAAI,CACZ,SAAS,CAAE,GAAG,CACd,WAAW,CAAE,MAAM,CACnB,KAAK,CAAE,OAAO,CACd,aAAa,CAAE,GAAG,AACnB,CAAC,AAED,WAAW,eAAC,CAAC,AACZ,UAAU,CAAE,IAAI,AACjB,CAAC,AAED,gBAAgB,eAAC,CAAC,AACjB,UAAU,CAAE,IAAI,AACjB,CAAC,AAED,MAAM,AAAC,YAAY,KAAK,CAAC,AAAC,CAAC,AAC1B,EAAE,eAAC,CAAC,AACH,SAAS,CAAE,KAAK,AACjB,CAAC,AAED,EAAE,eAAC,CAAC,AACH,SAAS,CAAE,KAAK,AACjB,CAAC,AACF,CAAC\"}"
 };
 
 const About = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-	$$result.css.add(css$4);
+	$$result.css.add(css$5);
 
 	return `${($$result.head += `${($$result.title = `<title>About</title>`, "")}`, "")}
 
@@ -341,215 +595,96 @@ const About = create_ssr_component(($$result, $$props, $$bindings, slots) => {
 });
 
 var component_2 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': About
+  __proto__: null,
+  'default': About
 });
 
-/* src/routes/jobs/index.svelte generated by Svelte v3.31.2 */
+/* src/routes/admin/index.svelte generated by Svelte v3.31.2 */
 
-const css$5 = {
-	code: ".card-container.svelte-txaqfl{background-color:rgb(241, 255, 250);padding:2rem;border:1px solid #3333331a;border-radius:32px}h1.svelte-txaqfl{margin-top:0}p.svelte-txaqfl{margin:0;font-size:0.95rem;text-transform:capitalize}.title.svelte-txaqfl{margin:0;padding:0;font-size:1rem;font-weight:600}.job.svelte-txaqfl{border:1px solid rgba(51, 51, 51, 0.125);margin-bottom:0.75rem;padding:1.2rem;border-radius:16px}.div-grid.svelte-txaqfl{display:grid;grid-template-columns:repeat(4, auto);grid-column-gap:0.75rem}",
-	map: "{\"version\":3,\"file\":\"index.svelte\",\"sources\":[\"index.svelte\"],\"sourcesContent\":[\"<script context=\\\"module\\\">\\r\\n    export async function preload(page, session) {\\r\\n        const result = await this.fetch(\\\"/jobs.json\\\");\\r\\n        const jobs = await result.json();\\r\\n        return { jobs };\\r\\n    }\\r\\n</script>\\r\\n\\r\\n<script>\\r\\n    export let jobs;\\r\\n    // console.log(jobs);\\r\\n</script>\\r\\n\\r\\n<div class=\\\"card-container\\\">\\r\\n    <h1>hello jobs</h1>\\r\\n    {#each jobs as job}\\r\\n        <div class=\\\"job\\\">\\r\\n            <p class=\\\"title\\\">{job.title}</p>\\r\\n            <p>Ksh. {job.salary}</p>\\r\\n            <div class=\\\"div-grid\\\">\\r\\n                <p>{job.company}</p>\\r\\n                <p>{job.location}</p>\\r\\n                <p>{job.category}</p>\\r\\n            </div>\\r\\n        </div>\\r\\n    {/each}\\r\\n</div>\\r\\n\\r\\n<svelte:head>\\r\\n    <title>Jobs</title>\\r\\n</svelte:head>\\r\\n\\r\\n<style>\\r\\n    .card-container {\\r\\n        background-color: rgb(241, 255, 250);\\r\\n        padding: 2rem;\\r\\n        border: 1px solid #3333331a;\\r\\n        border-radius: 32px;\\r\\n    }\\r\\n\\r\\n    h1 {\\r\\n        margin-top: 0;\\r\\n    }\\r\\n\\r\\n    p {\\r\\n        margin: 0;\\r\\n        font-size: 0.95rem;\\r\\n        text-transform: capitalize;\\r\\n    }\\r\\n\\r\\n    .title {\\r\\n        margin: 0;\\r\\n        padding: 0;\\r\\n        font-size: 1rem;\\r\\n        font-weight: 600;\\r\\n    }\\r\\n\\r\\n    .job {\\r\\n        border: 1px solid rgba(51, 51, 51, 0.125);\\r\\n        margin-bottom: 0.75rem;\\r\\n        padding: 1.2rem;\\r\\n        border-radius: 16px;\\r\\n    }\\r\\n\\r\\n    .div-grid {\\r\\n        display: grid;\\r\\n        grid-template-columns: repeat(4, auto);\\r\\n        grid-column-gap: 0.75rem;\\r\\n    }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AAiCI,eAAe,cAAC,CAAC,AACb,gBAAgB,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACpC,OAAO,CAAE,IAAI,CACb,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,SAAS,CAC3B,aAAa,CAAE,IAAI,AACvB,CAAC,AAED,EAAE,cAAC,CAAC,AACA,UAAU,CAAE,CAAC,AACjB,CAAC,AAED,CAAC,cAAC,CAAC,AACC,MAAM,CAAE,CAAC,CACT,SAAS,CAAE,OAAO,CAClB,cAAc,CAAE,UAAU,AAC9B,CAAC,AAED,MAAM,cAAC,CAAC,AACJ,MAAM,CAAE,CAAC,CACT,OAAO,CAAE,CAAC,CACV,SAAS,CAAE,IAAI,CACf,WAAW,CAAE,GAAG,AACpB,CAAC,AAED,IAAI,cAAC,CAAC,AACF,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,KAAK,CAAC,CACzC,aAAa,CAAE,OAAO,CACtB,OAAO,CAAE,MAAM,CACf,aAAa,CAAE,IAAI,AACvB,CAAC,AAED,SAAS,cAAC,CAAC,AACP,OAAO,CAAE,IAAI,CACb,qBAAqB,CAAE,OAAO,CAAC,CAAC,CAAC,IAAI,CAAC,CACtC,eAAe,CAAE,OAAO,AAC5B,CAAC\"}"
+const css$6 = {
+	code: ".width.svelte-3i7vqz{max-width:800px;width:85%;margin:0 auto}.card-container.svelte-3i7vqz{padding:2rem 0;margin-top:3rem}h1.svelte-3i7vqz{margin-top:0;margin-bottom:1rem}p.svelte-3i7vqz{margin:0;font-size:0.95rem;text-transform:capitalize}.title.svelte-3i7vqz{margin:0;padding:0;font-size:1rem;font-weight:600}.blog.svelte-3i7vqz{border:1px solid rgba(51, 51, 51, 0.125);margin-bottom:0.75rem;padding:1.2rem;border-radius:0.34rem}.date.svelte-3i7vqz{font-size:0.75rem;color:rgb(173, 173, 173)}button.svelte-3i7vqz{margin-top:0.75rem;padding:0.25rem 1.2rem;border:none;border-radius:2px;outline:none;color:white}button.svelte-3i7vqz:focus{outline:solid 2px rgba(0, 0, 0, 0.1275)}button.green.svelte-3i7vqz{background-color:rgba(0, 0, 255, 0.7)}button.red.svelte-3i7vqz{background-color:rgba(255, 0, 0, 0.7)}",
+	map: "{\"version\":3,\"file\":\"index.svelte\",\"sources\":[\"index.svelte\"],\"sourcesContent\":[\"<script context=\\\"module\\\">\\r\\n  export async function preload(page, session) {\\r\\n    const result = await this.fetch(\\\"admin.json\\\");\\r\\n    const blogs = await result.json();\\r\\n    return { blogs };\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<script>\\r\\n  export let blogs;\\r\\n\\r\\n  async function handleDelete(e) {\\r\\n    let id = e.target.id;\\r\\n    let data = { id };\\r\\n    await fetch(\\\"admin.json\\\", {\\r\\n      method: \\\"PUT\\\", // or 'PUT'\\r\\n      headers: {\\r\\n        \\\"Content-Type\\\": \\\"application/json\\\",\\r\\n      },\\r\\n      body: JSON.stringify(data),\\r\\n    });\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<main>\\r\\n  <div class=\\\"card-container width\\\">\\r\\n    <h1>Our recent blogs</h1>\\r\\n    {#each blogs as blog (blog.id)}\\r\\n      <div class=\\\"blog\\\">\\r\\n        <p class=\\\"title\\\">{blog.title}</p>\\r\\n        <p class=\\\"date\\\">\\r\\n          {new Date(blog.created_at).toLocaleString(\\\"en-US\\\", {\\r\\n            month: \\\"long\\\",\\r\\n            day: \\\"2-digit\\\",\\r\\n            year: \\\"numeric\\\",\\r\\n            hour: \\\"2-digit\\\",\\r\\n            timeZone: \\\"Africa/Nairobi\\\", // 6 hours behind UTC\\r\\n          })}\\r\\n        </p>\\r\\n        <p>{blog.summary}</p>\\r\\n        <a href=\\\"/admin/update/{blog.id}\\\">\\r\\n          <button class=\\\"green\\\">Edit</button></a\\r\\n        >\\r\\n        <button id={blog.id} on:click={handleDelete} class=\\\"red\\\">Delete</button>\\r\\n      </div>\\r\\n    {/each}\\r\\n  </div>\\r\\n</main>\\r\\n\\r\\n<svelte:head>\\r\\n  <title>Blogs</title>\\r\\n</svelte:head>\\r\\n\\r\\n<style>\\r\\n  .width {\\r\\n    max-width: 800px;\\r\\n    width: 85%;\\r\\n    margin: 0 auto;\\r\\n  }\\r\\n\\r\\n  .card-container {\\r\\n    padding: 2rem 0;\\r\\n    /* border-bottom: 1px solid #3333331a; */\\r\\n    margin-top: 3rem;\\r\\n  }\\r\\n\\r\\n  h1 {\\r\\n    margin-top: 0;\\r\\n    margin-bottom: 1rem;\\r\\n  }\\r\\n\\r\\n  p {\\r\\n    margin: 0;\\r\\n    font-size: 0.95rem;\\r\\n    text-transform: capitalize;\\r\\n  }\\r\\n\\r\\n  .title {\\r\\n    margin: 0;\\r\\n    padding: 0;\\r\\n    font-size: 1rem;\\r\\n    font-weight: 600;\\r\\n  }\\r\\n\\r\\n  .blog {\\r\\n    border: 1px solid rgba(51, 51, 51, 0.125);\\r\\n    margin-bottom: 0.75rem;\\r\\n    padding: 1.2rem;\\r\\n    border-radius: 0.34rem;\\r\\n  }\\r\\n\\r\\n  .date {\\r\\n    font-size: 0.75rem;\\r\\n    color: rgb(173, 173, 173);\\r\\n  }\\r\\n\\r\\n  button {\\r\\n    margin-top: 0.75rem;\\r\\n    padding: 0.25rem 1.2rem;\\r\\n    border: none;\\r\\n    border-radius: 2px;\\r\\n    outline: none;\\r\\n    color: white;\\r\\n  }\\r\\n\\r\\n  button:focus {\\r\\n    outline: solid 2px rgba(0, 0, 0, 0.1275);\\r\\n    /* outline-offset: 1px; */\\r\\n  }\\r\\n\\r\\n  button.green {\\r\\n    background-color: rgba(0, 0, 255, 0.7);\\r\\n  }\\r\\n\\r\\n  button.red {\\r\\n    background-color: rgba(255, 0, 0, 0.7);\\r\\n  }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AAsDE,MAAM,cAAC,CAAC,AACN,SAAS,CAAE,KAAK,CAChB,KAAK,CAAE,GAAG,CACV,MAAM,CAAE,CAAC,CAAC,IAAI,AAChB,CAAC,AAED,eAAe,cAAC,CAAC,AACf,OAAO,CAAE,IAAI,CAAC,CAAC,CAEf,UAAU,CAAE,IAAI,AAClB,CAAC,AAED,EAAE,cAAC,CAAC,AACF,UAAU,CAAE,CAAC,CACb,aAAa,CAAE,IAAI,AACrB,CAAC,AAED,CAAC,cAAC,CAAC,AACD,MAAM,CAAE,CAAC,CACT,SAAS,CAAE,OAAO,CAClB,cAAc,CAAE,UAAU,AAC5B,CAAC,AAED,MAAM,cAAC,CAAC,AACN,MAAM,CAAE,CAAC,CACT,OAAO,CAAE,CAAC,CACV,SAAS,CAAE,IAAI,CACf,WAAW,CAAE,GAAG,AAClB,CAAC,AAED,KAAK,cAAC,CAAC,AACL,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,KAAK,CAAC,CACzC,aAAa,CAAE,OAAO,CACtB,OAAO,CAAE,MAAM,CACf,aAAa,CAAE,OAAO,AACxB,CAAC,AAED,KAAK,cAAC,CAAC,AACL,SAAS,CAAE,OAAO,CAClB,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,AAC3B,CAAC,AAED,MAAM,cAAC,CAAC,AACN,UAAU,CAAE,OAAO,CACnB,OAAO,CAAE,OAAO,CAAC,MAAM,CACvB,MAAM,CAAE,IAAI,CACZ,aAAa,CAAE,GAAG,CAClB,OAAO,CAAE,IAAI,CACb,KAAK,CAAE,KAAK,AACd,CAAC,AAED,oBAAM,MAAM,AAAC,CAAC,AACZ,OAAO,CAAE,KAAK,CAAC,GAAG,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,MAAM,CAAC,AAE1C,CAAC,AAED,MAAM,MAAM,cAAC,CAAC,AACZ,gBAAgB,CAAE,KAAK,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,AACxC,CAAC,AAED,MAAM,IAAI,cAAC,CAAC,AACV,gBAAgB,CAAE,KAAK,GAAG,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,CAAC,GAAG,CAAC,AACxC,CAAC\"}"
 };
 
 async function preload(page, session) {
-	const result = await this.fetch("/jobs.json");
-	const jobs = await result.json();
-	return { jobs };
+	const result = await this.fetch("admin.json");
+	const blogs = await result.json();
+	return { blogs };
 }
 
-const Jobs = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-	let { jobs } = $$props;
-	if ($$props.jobs === void 0 && $$bindings.jobs && jobs !== void 0) $$bindings.jobs(jobs);
-	$$result.css.add(css$5);
+const Admin = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+	let { blogs } = $$props;
+	if ($$props.blogs === void 0 && $$bindings.blogs && blogs !== void 0) $$bindings.blogs(blogs);
+	$$result.css.add(css$6);
 
-	return `<div class="${"card-container svelte-txaqfl"}"><h1 class="${"svelte-txaqfl"}">hello jobs</h1>
-    ${each(jobs, job => `<div class="${"job svelte-txaqfl"}"><p class="${"title svelte-txaqfl"}">${escape(job.title)}</p>
-            <p class="${"svelte-txaqfl"}">Ksh. ${escape(job.salary)}</p>
-            <div class="${"div-grid svelte-txaqfl"}"><p class="${"svelte-txaqfl"}">${escape(job.company)}</p>
-                <p class="${"svelte-txaqfl"}">${escape(job.location)}</p>
-                <p class="${"svelte-txaqfl"}">${escape(job.category)}</p></div>
-        </div>`)}</div>
+	return `<main><div class="${"card-container width svelte-3i7vqz"}"><h1 class="${"svelte-3i7vqz"}">Our recent blogs</h1>
+    ${each(blogs, blog => `<div class="${"blog svelte-3i7vqz"}"><p class="${"title svelte-3i7vqz"}">${escape(blog.title)}</p>
+        <p class="${"date svelte-3i7vqz"}">${escape(new Date(blog.created_at).toLocaleString("en-US", {
+		month: "long",
+		day: "2-digit",
+		year: "numeric",
+		hour: "2-digit",
+		timeZone: "Africa/Nairobi", // 6 hours behind UTC
+		
+	}))}</p>
+        <p class="${"svelte-3i7vqz"}">${escape(blog.summary)}</p>
+        <a href="${"/admin/update/" + escape(blog.id)}"><button class="${"green svelte-3i7vqz"}">Edit</button></a>
+        <button${add_attribute("id", blog.id, 0)} class="${"red svelte-3i7vqz"}">Delete</button>
+      </div>`)}</div></main>
 
-${($$result.head += `${($$result.title = `<title>Jobs</title>`, "")}`, "")}`;
+${($$result.head += `${($$result.title = `<title>Blogs</title>`, "")}`, "")}`;
 });
 
 var component_3 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': Jobs,
-    preload: preload
+  __proto__: null,
+  'default': Admin,
+  preload: preload
 });
 
-/* src/routes/jobs/create.svelte generated by Svelte v3.31.2 */
+/* src/routes/admin/create/index.svelte generated by Svelte v3.31.2 */
 
-const css$6 = {
-	code: ".form-div.svelte-1bbxu0t{max-width:1000px;margin:0 auto}.input.svelte-1bbxu0t{margin-bottom:1.5rem}input.svelte-1bbxu0t,textarea.svelte-1bbxu0t{padding:0.75rem 1.1rem;font-size:1.2rem;border:1px solid #b3b3b380;outline-style:none;color:#6d6d6d;width:100%}input.svelte-1bbxu0t:focus{background-color:#fff;border:1px solid #fff;outline:6px solid hsla(175, 100%, 75%, 0.25)}textarea.svelte-1bbxu0t:focus{background-color:#fff;border:1px solid #fff;outline:6px solid hsla(175, 100%, 75%, 0.25)}button.svelte-1bbxu0t{padding:0.755rem 1.2rem;font-size:1.2rem;background-color:#1ae5c1;border:none;outline-style:none;color:#ffffff}button.svelte-1bbxu0t:hover{cursor:pointer}h1.svelte-1bbxu0t{margin-top:4em;margin-bottom:1em}",
-	map: "{\"version\":3,\"file\":\"create.svelte\",\"sources\":[\"create.svelte\"],\"sourcesContent\":[\"<script>\\r\\n    // import TextInput from \\\"../../components/TextInput.svelte\\\";\\r\\n    let title;\\r\\n    let category;\\r\\n    let location;\\r\\n    let company;\\r\\n    let salary;\\r\\n    let details;\\r\\n\\r\\n    function handleSubmit() {\\r\\n        let data = {\\r\\n            title,\\r\\n            category,\\r\\n            location,\\r\\n            company,\\r\\n            salary,\\r\\n            details,\\r\\n        };\\r\\n\\r\\n        fetch(\\\"/jobs.json\\\", {\\r\\n            method: \\\"POST\\\", // or 'PUT'\\r\\n            headers: {\\r\\n                \\\"Content-Type\\\": \\\"application/json\\\",\\r\\n            },\\r\\n            body: JSON.stringify(data),\\r\\n        });\\r\\n\\r\\n        console.log(data);\\r\\n    }\\r\\n</script>\\r\\n\\r\\n<div class=\\\"form-div\\\">\\r\\n    <h1>Create Job Page</h1>\\r\\n    <form on:submit|preventDefault={handleSubmit}>\\r\\n        <div class=\\\"input\\\">\\r\\n            <input\\r\\n                bind:value={title}\\r\\n                type=\\\"text\\\"\\r\\n                placeholder=\\\"Enter job title\\\"\\r\\n            />\\r\\n        </div>\\r\\n        <div class=\\\"input\\\">\\r\\n            <input\\r\\n                bind:value={category}\\r\\n                type=\\\"text\\\"\\r\\n                placeholder=\\\"Enter job category\\\"\\r\\n            />\\r\\n        </div>\\r\\n        <div class=\\\"input\\\">\\r\\n            <input\\r\\n                bind:value={location}\\r\\n                type=\\\"text\\\"\\r\\n                placeholder=\\\"Enter job location\\\"\\r\\n            />\\r\\n        </div>\\r\\n        <div class=\\\"input\\\">\\r\\n            <input\\r\\n                bind:value={company}\\r\\n                type=\\\"text\\\"\\r\\n                placeholder=\\\"Enter company\\\"\\r\\n            />\\r\\n        </div>\\r\\n        <div class=\\\"input\\\">\\r\\n            <input bind:value={salary} type=\\\"text\\\" placeholder=\\\"Enter salary\\\" />\\r\\n        </div>\\r\\n        <div class=\\\"input\\\">\\r\\n            <textarea\\r\\n                bind:value={details}\\r\\n                cols=\\\"30\\\"\\r\\n                rows=\\\"10\\\"\\r\\n                placeholder=\\\"Enter job details\\\"\\r\\n            />\\r\\n        </div>\\r\\n        <button type=\\\"submit\\\"> Submit Form </button>\\r\\n    </form>\\r\\n</div>\\r\\n\\r\\n<style>\\r\\n    .form-div {\\r\\n        max-width: 1000px;\\r\\n        margin: 0 auto;\\r\\n    }\\r\\n\\r\\n    .input {\\r\\n        margin-bottom: 1.5rem;\\r\\n    }\\r\\n\\r\\n    input,\\r\\n    textarea {\\r\\n        padding: 0.75rem 1.1rem;\\r\\n        font-size: 1.2rem;\\r\\n        border: 1px solid #b3b3b380;\\r\\n        outline-style: none;\\r\\n        color: #6d6d6d;\\r\\n        width: 100%;\\r\\n    }\\r\\n\\r\\n    input:focus {\\r\\n        background-color: #fff;\\r\\n        border: 1px solid #fff;\\r\\n        outline: 6px solid hsla(175, 100%, 75%, 0.25);\\r\\n    }\\r\\n\\r\\n    textarea:focus {\\r\\n        background-color: #fff;\\r\\n        border: 1px solid #fff;\\r\\n        outline: 6px solid hsla(175, 100%, 75%, 0.25);\\r\\n    }\\r\\n\\r\\n    button {\\r\\n        padding: 0.755rem 1.2rem;\\r\\n        font-size: 1.2rem;\\r\\n        background-color: #1ae5c1;\\r\\n        border: none;\\r\\n        /* border-radius: 5px; */\\r\\n        outline-style: none;\\r\\n        color: #ffffff;\\r\\n    }\\r\\n\\r\\n    button:hover {\\r\\n        cursor: pointer;\\r\\n    }\\r\\n\\r\\n    h1 {\\r\\n        margin-top: 4em;\\r\\n        margin-bottom: 1em;\\r\\n    }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AA8EI,SAAS,eAAC,CAAC,AACP,SAAS,CAAE,MAAM,CACjB,MAAM,CAAE,CAAC,CAAC,IAAI,AAClB,CAAC,AAED,MAAM,eAAC,CAAC,AACJ,aAAa,CAAE,MAAM,AACzB,CAAC,AAED,oBAAK,CACL,QAAQ,eAAC,CAAC,AACN,OAAO,CAAE,OAAO,CAAC,MAAM,CACvB,SAAS,CAAE,MAAM,CACjB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,SAAS,CAC3B,aAAa,CAAE,IAAI,CACnB,KAAK,CAAE,OAAO,CACd,KAAK,CAAE,IAAI,AACf,CAAC,AAED,oBAAK,MAAM,AAAC,CAAC,AACT,gBAAgB,CAAE,IAAI,CACtB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,IAAI,CACtB,OAAO,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,GAAG,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,CAAC,IAAI,CAAC,AACjD,CAAC,AAED,uBAAQ,MAAM,AAAC,CAAC,AACZ,gBAAgB,CAAE,IAAI,CACtB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,IAAI,CACtB,OAAO,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,GAAG,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,CAAC,IAAI,CAAC,AACjD,CAAC,AAED,MAAM,eAAC,CAAC,AACJ,OAAO,CAAE,QAAQ,CAAC,MAAM,CACxB,SAAS,CAAE,MAAM,CACjB,gBAAgB,CAAE,OAAO,CACzB,MAAM,CAAE,IAAI,CAEZ,aAAa,CAAE,IAAI,CACnB,KAAK,CAAE,OAAO,AAClB,CAAC,AAED,qBAAM,MAAM,AAAC,CAAC,AACV,MAAM,CAAE,OAAO,AACnB,CAAC,AAED,EAAE,eAAC,CAAC,AACA,UAAU,CAAE,GAAG,CACf,aAAa,CAAE,GAAG,AACtB,CAAC\"}"
+const css$7 = {
+	code: "main.svelte-n04aob.svelte-n04aob{width:80%;max-width:1000px;margin:auto;margin-top:3em}.author.svelte-n04aob.svelte-n04aob{margin-bottom:1rem}.author.svelte-n04aob select.svelte-n04aob{display:block;font-size:1.2rem;line-height:1.3;padding:0.75rem 1.4rem 0.75rem 0.8em;width:100%;max-width:220px;box-sizing:border-box;margin:0;border:1px solid #b3b3b380;background-color:white;color:#6d6d6d;-moz-appearance:none;-webkit-appearance:none;appearance:none;background-image:url(\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E\");background-repeat:no-repeat, repeat;background-position:right 0.7em top 50%, 0 0;background-size:0.65em auto, 100%;fill:#1ae5c1}.input.svelte-n04aob.svelte-n04aob{margin-bottom:1.5rem}input.svelte-n04aob.svelte-n04aob,textarea.svelte-n04aob.svelte-n04aob{padding:0.75rem 1.1rem;font-size:1.2rem;border:1px solid #b3b3b380;outline-style:none;color:#6d6d6d;width:100%}input.svelte-n04aob.svelte-n04aob:focus{background-color:#fff;border:1px solid #fff;outline:6px solid hsla(175, 100%, 75%, 0.25)}textarea.svelte-n04aob.svelte-n04aob:focus{background-color:#fff;border:1px solid #fff;outline:6px solid hsla(175, 100%, 75%, 0.25)}button.svelte-n04aob.svelte-n04aob{padding:0.755rem 1.2rem;font-size:1.2rem;background-color:#1ae5c1;border:none;outline-style:none;color:#ffffff}button.svelte-n04aob.svelte-n04aob:hover{cursor:pointer}h1.svelte-n04aob.svelte-n04aob{margin-top:4em;margin-bottom:1em}h4.svelte-n04aob.svelte-n04aob{margin-bottom:0.75rem;font-size:1.2rem;font-weight:400}",
+	map: "{\"version\":3,\"file\":\"index.svelte\",\"sources\":[\"index.svelte\"],\"sourcesContent\":[\"<script context=\\\"module\\\">\\r\\n  export async function preload(page, session) {\\r\\n    const result = await this.fetch(\\\"admin/create.json\\\");\\r\\n    const returnedObject = await result.json();\\r\\n    return { returnedObject };\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<script>\\r\\n  export let returnedObject;\\r\\n  //////////////////////////////////////////////////////////////\\r\\n  let author;\\r\\n  let category;\\r\\n  let title;\\r\\n  let summary;\\r\\n  let content;\\r\\n  // = \\\"Here comes drama\\\"\\r\\n\\r\\n  function handleSubmit() {\\r\\n    let data = {\\r\\n      author,\\r\\n      category,\\r\\n      title,\\r\\n      summary,\\r\\n      content,\\r\\n    };\\r\\n\\r\\n    fetch(\\\"/admin/create.json\\\", {\\r\\n      method: \\\"POST\\\", // or 'PUT'\\r\\n      headers: {\\r\\n        \\\"Content-Type\\\": \\\"application/json\\\",\\r\\n      },\\r\\n      body: JSON.stringify(data),\\r\\n    });\\r\\n\\r\\n    console.log(data);\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<main>\\r\\n  <div class=\\\"form-div\\\">\\r\\n    <h1>Post a Blog</h1>\\r\\n    <form on:submit|preventDefault={handleSubmit}>\\r\\n      <div class=\\\"author\\\">\\r\\n        <h4>Select author</h4>\\r\\n        <select bind:value={author}>\\r\\n          {#each returnedObject[0] as author, i}\\r\\n            <option value={i + 1}>{author.first_name} {author.last_name}</option\\r\\n            >\\r\\n          {/each}\\r\\n        </select>\\r\\n      </div>\\r\\n      <div class=\\\"author\\\">\\r\\n        <h4>Select category</h4>\\r\\n        <select bind:value={category}>\\r\\n          {#each returnedObject[1] as category, i}\\r\\n            <option value={i + 1}>{category.category}</option>\\r\\n            <p>{i + 1}</p>\\r\\n          {/each}\\r\\n        </select>\\r\\n      </div>\\r\\n      <div class=\\\"input\\\">\\r\\n        <input bind:value={title} type=\\\"text\\\" placeholder=\\\"Enter blog title\\\" />\\r\\n      </div>\\r\\n      <div class=\\\"input\\\">\\r\\n        <input\\r\\n          bind:value={summary}\\r\\n          type=\\\"text\\\"\\r\\n          placeholder=\\\"Enter blog summary\\\"\\r\\n        />\\r\\n      </div>\\r\\n      <div class=\\\"input\\\">\\r\\n        <textarea\\r\\n          bind:value={content}\\r\\n          rows=\\\"10\\\"\\r\\n          placeholder=\\\"Enter blog content\\\"\\r\\n        />\\r\\n      </div>\\r\\n      <button type=\\\"submit\\\"> Submit Form </button>\\r\\n    </form>\\r\\n  </div>\\r\\n</main>\\r\\n\\r\\n<style>\\r\\n  main {\\r\\n    width: 80%;\\r\\n    max-width: 1000px;\\r\\n    margin: auto;\\r\\n    margin-top: 3em;\\r\\n  }\\r\\n\\r\\n  .author {\\r\\n    margin-bottom: 1rem;\\r\\n  }\\r\\n\\r\\n  .author select {\\r\\n    display: block;\\r\\n    font-size: 1.2rem;\\r\\n    line-height: 1.3;\\r\\n    padding: 0.75rem 1.4rem 0.75rem 0.8em;\\r\\n    width: 100%;\\r\\n    max-width: 220px;\\r\\n    box-sizing: border-box;\\r\\n    margin: 0;\\r\\n    border: 1px solid #b3b3b380;\\r\\n    background-color: white;\\r\\n    color: #6d6d6d;\\r\\n    /* box-shadow: 0 1px 0 1px rgba(0,0,0,.04); */\\r\\n    -moz-appearance: none;\\r\\n    -webkit-appearance: none;\\r\\n    appearance: none;\\r\\n    background-image: url(\\\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E\\\");\\r\\n    /* linear-gradient(to bottom, #ffffff 0%,#e5e5e5 100%); */\\r\\n    background-repeat: no-repeat, repeat;\\r\\n    background-position: right 0.7em top 50%, 0 0;\\r\\n    background-size: 0.65em auto, 100%;\\r\\n    fill: #1ae5c1;\\r\\n  }\\r\\n\\r\\n  .input {\\r\\n    margin-bottom: 1.5rem;\\r\\n  }\\r\\n\\r\\n  input,\\r\\n  textarea {\\r\\n    padding: 0.75rem 1.1rem;\\r\\n    font-size: 1.2rem;\\r\\n    border: 1px solid #b3b3b380;\\r\\n    outline-style: none;\\r\\n    color: #6d6d6d;\\r\\n    width: 100%;\\r\\n  }\\r\\n\\r\\n  input:focus {\\r\\n    background-color: #fff;\\r\\n    border: 1px solid #fff;\\r\\n    outline: 6px solid hsla(175, 100%, 75%, 0.25);\\r\\n  }\\r\\n\\r\\n  textarea:focus {\\r\\n    background-color: #fff;\\r\\n    border: 1px solid #fff;\\r\\n    outline: 6px solid hsla(175, 100%, 75%, 0.25);\\r\\n  }\\r\\n\\r\\n  button {\\r\\n    padding: 0.755rem 1.2rem;\\r\\n    font-size: 1.2rem;\\r\\n    background-color: #1ae5c1;\\r\\n    border: none;\\r\\n    /* border-radius: 5px; */\\r\\n    outline-style: none;\\r\\n    color: #ffffff;\\r\\n  }\\r\\n\\r\\n  button:hover {\\r\\n    cursor: pointer;\\r\\n  }\\r\\n\\r\\n  h1 {\\r\\n    margin-top: 4em;\\r\\n    margin-bottom: 1em;\\r\\n  }\\r\\n\\r\\n  h4 {\\r\\n    margin-bottom: 0.75rem;\\r\\n    font-size: 1.2rem;\\r\\n    font-weight: 400;\\r\\n  }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AAoFE,IAAI,4BAAC,CAAC,AACJ,KAAK,CAAE,GAAG,CACV,SAAS,CAAE,MAAM,CACjB,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,GAAG,AACjB,CAAC,AAED,OAAO,4BAAC,CAAC,AACP,aAAa,CAAE,IAAI,AACrB,CAAC,AAED,qBAAO,CAAC,MAAM,cAAC,CAAC,AACd,OAAO,CAAE,KAAK,CACd,SAAS,CAAE,MAAM,CACjB,WAAW,CAAE,GAAG,CAChB,OAAO,CAAE,OAAO,CAAC,MAAM,CAAC,OAAO,CAAC,KAAK,CACrC,KAAK,CAAE,IAAI,CACX,SAAS,CAAE,KAAK,CAChB,UAAU,CAAE,UAAU,CACtB,MAAM,CAAE,CAAC,CACT,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,SAAS,CAC3B,gBAAgB,CAAE,KAAK,CACvB,KAAK,CAAE,OAAO,CAEd,eAAe,CAAE,IAAI,CACrB,kBAAkB,CAAE,IAAI,CACxB,UAAU,CAAE,IAAI,CAChB,gBAAgB,CAAE,IAAI,6dAA6d,CAAC,CAEpf,iBAAiB,CAAE,SAAS,CAAC,CAAC,MAAM,CACpC,mBAAmB,CAAE,KAAK,CAAC,KAAK,CAAC,GAAG,CAAC,GAAG,CAAC,CAAC,CAAC,CAAC,CAAC,CAC7C,eAAe,CAAE,MAAM,CAAC,IAAI,CAAC,CAAC,IAAI,CAClC,IAAI,CAAE,OAAO,AACf,CAAC,AAED,MAAM,4BAAC,CAAC,AACN,aAAa,CAAE,MAAM,AACvB,CAAC,AAED,iCAAK,CACL,QAAQ,4BAAC,CAAC,AACR,OAAO,CAAE,OAAO,CAAC,MAAM,CACvB,SAAS,CAAE,MAAM,CACjB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,SAAS,CAC3B,aAAa,CAAE,IAAI,CACnB,KAAK,CAAE,OAAO,CACd,KAAK,CAAE,IAAI,AACb,CAAC,AAED,iCAAK,MAAM,AAAC,CAAC,AACX,gBAAgB,CAAE,IAAI,CACtB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,IAAI,CACtB,OAAO,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,GAAG,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,CAAC,IAAI,CAAC,AAC/C,CAAC,AAED,oCAAQ,MAAM,AAAC,CAAC,AACd,gBAAgB,CAAE,IAAI,CACtB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,IAAI,CACtB,OAAO,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,GAAG,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,CAAC,IAAI,CAAC,AAC/C,CAAC,AAED,MAAM,4BAAC,CAAC,AACN,OAAO,CAAE,QAAQ,CAAC,MAAM,CACxB,SAAS,CAAE,MAAM,CACjB,gBAAgB,CAAE,OAAO,CACzB,MAAM,CAAE,IAAI,CAEZ,aAAa,CAAE,IAAI,CACnB,KAAK,CAAE,OAAO,AAChB,CAAC,AAED,kCAAM,MAAM,AAAC,CAAC,AACZ,MAAM,CAAE,OAAO,AACjB,CAAC,AAED,EAAE,4BAAC,CAAC,AACF,UAAU,CAAE,GAAG,CACf,aAAa,CAAE,GAAG,AACpB,CAAC,AAED,EAAE,4BAAC,CAAC,AACF,aAAa,CAAE,OAAO,CACtB,SAAS,CAAE,MAAM,CACjB,WAAW,CAAE,GAAG,AAClB,CAAC\"}"
 };
 
+async function preload$1(page, session) {
+	const result = await this.fetch("admin/create.json");
+	const returnedObject = await result.json();
+	return { returnedObject };
+}
+
 const Create = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-	let title;
+	let { returnedObject } = $$props;
+
+	//////////////////////////////////////////////////////////////
+	let author;
+
 	let category;
-	let location;
-	let company;
-	let salary;
+	let title;
+	let summary;
 
-	$$result.css.add(css$6);
+	if ($$props.returnedObject === void 0 && $$bindings.returnedObject && returnedObject !== void 0) $$bindings.returnedObject(returnedObject);
+	$$result.css.add(css$7);
 
-	return `<div class="${"form-div svelte-1bbxu0t"}"><h1 class="${"svelte-1bbxu0t"}">Create Job Page</h1>
-    <form><div class="${"input svelte-1bbxu0t"}"><input type="${"text"}" placeholder="${"Enter job title"}" class="${"svelte-1bbxu0t"}"${add_attribute("value", title, 1)}></div>
-        <div class="${"input svelte-1bbxu0t"}"><input type="${"text"}" placeholder="${"Enter job category"}" class="${"svelte-1bbxu0t"}"${add_attribute("value", category, 1)}></div>
-        <div class="${"input svelte-1bbxu0t"}"><input type="${"text"}" placeholder="${"Enter job location"}" class="${"svelte-1bbxu0t"}"${add_attribute("value", location, 1)}></div>
-        <div class="${"input svelte-1bbxu0t"}"><input type="${"text"}" placeholder="${"Enter company"}" class="${"svelte-1bbxu0t"}"${add_attribute("value", company, 1)}></div>
-        <div class="${"input svelte-1bbxu0t"}"><input type="${"text"}" placeholder="${"Enter salary"}" class="${"svelte-1bbxu0t"}"${add_attribute("value", salary, 1)}></div>
-        <div class="${"input svelte-1bbxu0t"}"><textarea cols="${"30"}" rows="${"10"}" placeholder="${"Enter job details"}" class="${"svelte-1bbxu0t"}">${ ""}</textarea></div>
-        <button type="${"submit"}" class="${"svelte-1bbxu0t"}">Submit Form </button></form>
-</div>`;
+	return `<main class="${"svelte-n04aob"}"><div class="${"form-div"}"><h1 class="${"svelte-n04aob"}">Post a Blog</h1>
+    <form><div class="${"author svelte-n04aob"}"><h4 class="${"svelte-n04aob"}">Select author</h4>
+        <select class="${"svelte-n04aob"}"${add_attribute("value", author, 1)}>${each(returnedObject[0], (author, i) => `<option${add_attribute("value", i + 1, 0)}>${escape(author.first_name)} ${escape(author.last_name)}</option>`)}</select></div>
+      <div class="${"author svelte-n04aob"}"><h4 class="${"svelte-n04aob"}">Select category</h4>
+        <select class="${"svelte-n04aob"}"${add_attribute("value", category, 1)}>${each(returnedObject[1], (category, i) => `<option${add_attribute("value", i + 1, 0)}>${escape(category.category)}</option>
+            <p>${escape(i + 1)}</p>`)}</select></div>
+      <div class="${"input svelte-n04aob"}"><input type="${"text"}" placeholder="${"Enter blog title"}" class="${"svelte-n04aob"}"${add_attribute("value", title, 1)}></div>
+      <div class="${"input svelte-n04aob"}"><input type="${"text"}" placeholder="${"Enter blog summary"}" class="${"svelte-n04aob"}"${add_attribute("value", summary, 1)}></div>
+      <div class="${"input svelte-n04aob"}"><textarea rows="${"10"}" placeholder="${"Enter blog content"}" class="${"svelte-n04aob"}">${ ""}</textarea></div>
+      <button type="${"submit"}" class="${"svelte-n04aob"}">Submit Form </button></form></div>
+</main>`;
 });
 
 var component_4 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': Create
+  __proto__: null,
+  'default': Create,
+  preload: preload$1
 });
-
-/* src/components/Nav.svelte generated by Svelte v3.31.2 */
-
-const css$7 = {
-	code: ".svelte-155642a.svelte-155642a{margin:0;padding:0;box-sizing:border-box;font-family:\"Poppins\", sans-serif}.menu-bar.svelte-155642a.svelte-155642a{position:absolute;right:10%;top:1.3em}.menu-bar.svelte-155642a.svelte-155642a:hover{cursor:pointer;opacity:0.8}.menu-bar.svelte-155642a div.svelte-155642a{width:30px;height:2px;background-color:rgb(177, 177, 177);margin-bottom:7px}.menu-bar.svelte-155642a div.svelte-155642a:last-child{margin-bottom:0}header.svelte-155642a.svelte-155642a{border-bottom:1px solid rgba(255, 62, 0, 0.1)}.position.svelte-155642a.svelte-155642a{position:absolute;top:0;left:0;width:50%;height:100vh;background-color:rgba(242, 242, 242, 0.95);padding-top:3em;padding-left:10%;padding-right:2em;border-right:1px solid rgba(172, 172, 172, 0.25);transform:translateX(-500px);transition:transform 0.35s ease-out}.show.svelte-155642a.svelte-155642a{transform:translateX(0px)}.nav-links.svelte-155642a p.svelte-155642a{padding:0.75em 0;border-bottom:1px solid rgba(172, 172, 172, 0.25)}.nav-links.svelte-155642a p.svelte-155642a:last-child{border-bottom:none}nav.svelte-155642a.svelte-155642a{width:90%;max-width:1680px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}img.svelte-155642a.svelte-155642a{width:100%;width:125px;display:block}a.svelte-155642a.svelte-155642a{padding:1em 0.5em;display:block;font-weight:400;color:rgb(85, 85, 85);text-decoration:none}@media(min-width: 800px){.menu-bar.svelte-155642a.svelte-155642a{display:none}.position.svelte-155642a.svelte-155642a{position:relative;width:auto;height:auto;background-color:#ffffff;padding-top:0;padding-left:0;border-right:none;transform:translateX(0)}.nav-links.svelte-155642a.svelte-155642a{display:flex}.nav-links.svelte-155642a p.svelte-155642a{padding:0;border-bottom:none}}",
-	map: "{\"version\":3,\"file\":\"Nav.svelte\",\"sources\":[\"Nav.svelte\"],\"sourcesContent\":[\"<script>\\n    // export let segment;\\n    let state = false;\\n\\n    let toggleShow = () => {\\n        state = !state;\\n    };\\n\\n    let removeMobileMenu = () => {\\n        if (state) {\\n            state = false;\\n        }\\n        return;\\n    };\\n</script>\\n\\n<div on:click={toggleShow} class=\\\"menu-bar\\\">\\n    <div />\\n    <div />\\n    <div />\\n</div>\\n<header>\\n    <nav>\\n        <div>\\n            <a href=\\\".\\\">\\n                <img src=\\\"images/visign-logo.svg\\\" alt=\\\"visign logo\\\" />\\n            </a>\\n        </div>\\n        <div class=\\\"nav-links position\\\" class:show={state}>\\n            <p><a on:click={toggleShow} href=\\\".\\\">Home</a></p>\\n            <p><a on:click={toggleShow} href=\\\"about\\\">About</a></p>\\n            <p>\\n                <a on:click={toggleShow} rel=\\\"prefetch\\\" href=\\\"jobs\\\">All Jobs</a>\\n            </p>\\n            <p><a on:click={toggleShow} href=\\\"contact\\\">Contact</a></p>\\n        </div>\\n    </nav>\\n</header>\\n<!-- <svelte:window on:click={removeMobileMenu} /> -->\\n\\n<style>\\n    * {\\n        margin: 0;\\n        padding: 0;\\n        box-sizing: border-box;\\n        font-family: \\\"Poppins\\\", sans-serif;\\n    }\\n\\n    .menu-bar {\\n        position: absolute;\\n        right: 10%;\\n        top: 1.3em;\\n    }\\n\\n    .menu-bar:hover {\\n        cursor: pointer;\\n        opacity: 0.8;\\n    }\\n\\n    .menu-bar div {\\n        width: 30px;\\n        height: 2px;\\n        background-color: rgb(177, 177, 177);\\n        margin-bottom: 7px;\\n    }\\n\\n    .menu-bar div:last-child {\\n        margin-bottom: 0;\\n    }\\n\\n    header {\\n        border-bottom: 1px solid rgba(255, 62, 0, 0.1);\\n    }\\n\\n    .position {\\n        position: absolute;\\n        top: 0;\\n        left: 0;\\n        width: 50%;\\n        height: 100vh;\\n        background-color: rgba(242, 242, 242, 0.95);\\n        padding-top: 3em;\\n        padding-left: 10%;\\n        padding-right: 2em;\\n        border-right: 1px solid rgba(172, 172, 172, 0.25);\\n        transform: translateX(-500px);\\n        transition: transform 0.35s ease-out;\\n    }\\n\\n    .show {\\n        transform: translateX(0px);\\n    }\\n\\n    .nav-links p {\\n        padding: 0.75em 0;\\n        border-bottom: 1px solid rgba(172, 172, 172, 0.25);\\n    }\\n\\n    .nav-links p:last-child {\\n        border-bottom: none;\\n    }\\n\\n    nav {\\n        width: 90%;\\n        max-width: 1680px;\\n        margin: 0 auto;\\n        display: flex;\\n        justify-content: space-between;\\n        align-items: center;\\n    }\\n\\n    img {\\n        width: 100%;\\n        width: 125px;\\n        display: block;\\n    }\\n\\n    a {\\n        padding: 1em 0.5em;\\n        display: block;\\n        font-weight: 400;\\n        color: rgb(85, 85, 85);\\n        text-decoration: none;\\n    }\\n\\n    @media (min-width: 800px) {\\n        .menu-bar {\\n            display: none;\\n        }\\n\\n        .position {\\n            position: relative;\\n            width: auto;\\n            height: auto;\\n            background-color: #ffffff;\\n            padding-top: 0;\\n            padding-left: 0;\\n            border-right: none;\\n            transform: translateX(0);\\n        }\\n\\n        .nav-links {\\n            display: flex;\\n        }\\n\\n        .nav-links p {\\n            padding: 0;\\n            border-bottom: none;\\n        }\\n\\n        /* a:active {\\n            border-bottom: 3px solid #ffad0a;\\n        } */\\n    }\\n</style>\\n\"],\"names\":[],\"mappings\":\"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\"}"
-};
-
-const Nav = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-
-	$$result.css.add(css$7);
-
-	return `<div class="${"menu-bar svelte-155642a"}"><div class="${"svelte-155642a"}"></div>
-    <div class="${"svelte-155642a"}"></div>
-    <div class="${"svelte-155642a"}"></div></div>
-<header class="${"svelte-155642a"}"><nav class="${"svelte-155642a"}"><div class="${"svelte-155642a"}"><a href="${"."}" class="${"svelte-155642a"}"><img src="${"images/visign-logo.svg"}" alt="${"visign logo"}" class="${"svelte-155642a"}"></a></div>
-        <div class="${["nav-links position svelte-155642a",  ""].join(" ").trim()}"><p class="${"svelte-155642a"}"><a href="${"."}" class="${"svelte-155642a"}">Home</a></p>
-            <p class="${"svelte-155642a"}"><a href="${"about"}" class="${"svelte-155642a"}">About</a></p>
-            <p class="${"svelte-155642a"}"><a rel="${"prefetch"}" href="${"jobs"}" class="${"svelte-155642a"}">All Jobs</a></p>
-            <p class="${"svelte-155642a"}"><a href="${"contact"}" class="${"svelte-155642a"}">Contact</a></p></div></nav></header>
-`;
-});
-
-/* src/components/Footer.svelte generated by Svelte v3.31.2 */
-
-const css$8 = {
-	code: "footer.svelte-azlxgb.svelte-azlxgb{border-top:1px solid rgba(255, 62, 0, 0.1)}.footer.svelte-azlxgb.svelte-azlxgb{color:rgb(145, 145, 145);padding:0.75em 0}.footer.svelte-azlxgb strong.svelte-azlxgb{color:rgb(145, 145, 145);font-weight:700}section.svelte-azlxgb.svelte-azlxgb{width:85%;margin:auto}@media(min-width: 800px){footer.svelte-azlxgb.svelte-azlxgb{text-align:center}}",
-	map: "{\"version\":3,\"file\":\"Footer.svelte\",\"sources\":[\"Footer.svelte\"],\"sourcesContent\":[\"<footer>\\n\\t<section>\\n\\t\\t<p class=\\\"footer text-align\\\">\\n\\t\\t\\t<strong />\\n\\t\\t\\t&copy Visign {new Date().getUTCFullYear()}\\n\\t\\t</p>\\n\\t</section>\\n</footer>\\n\\n<style>\\n\\tfooter {\\n\\t\\tborder-top: 1px solid rgba(255, 62, 0, 0.1);\\n\\t}\\n\\n\\t.footer {\\n\\t\\tcolor: rgb(145, 145, 145);\\n\\t\\tpadding: 0.75em 0;\\n\\t}\\n\\n\\t.footer strong {\\n\\t\\tcolor: rgb(145, 145, 145);\\n\\t\\tfont-weight: 700;\\n\\t}\\n\\n\\tsection {\\n\\t\\twidth: 85%;\\n\\t\\tmargin: auto;\\n\\t}\\n\\n\\t@media (min-width: 800px) {\\n\\t\\tfooter {\\n\\t\\ttext-align: center;\\n\\t}\\n\\t}\\n</style>\\n\"],\"names\":[],\"mappings\":\"AAUC,MAAM,4BAAC,CAAC,AACP,UAAU,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,GAAG,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,GAAG,CAAC,AAC5C,CAAC,AAED,OAAO,4BAAC,CAAC,AACR,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACzB,OAAO,CAAE,MAAM,CAAC,CAAC,AAClB,CAAC,AAED,qBAAO,CAAC,MAAM,cAAC,CAAC,AACf,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACzB,WAAW,CAAE,GAAG,AACjB,CAAC,AAED,OAAO,4BAAC,CAAC,AACR,KAAK,CAAE,GAAG,CACV,MAAM,CAAE,IAAI,AACb,CAAC,AAED,MAAM,AAAC,YAAY,KAAK,CAAC,AAAC,CAAC,AAC1B,MAAM,4BAAC,CAAC,AACR,UAAU,CAAE,MAAM,AACnB,CAAC,AACD,CAAC\"}"
-};
-
-const Footer = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-	$$result.css.add(css$8);
-
-	return `<footer class="${"svelte-azlxgb"}"><section class="${"svelte-azlxgb"}"><p class="${"footer text-align svelte-azlxgb"}"><strong class="${"svelte-azlxgb"}"></strong>
-			© Visign ${escape(new Date().getUTCFullYear())}</p></section>
-</footer>`;
-});
-
-/* src/routes/_layout.svelte generated by Svelte v3.31.2 */
-
-const css$9 = {
-	code: "main.svelte-cvyklp{width:100%;margin:0 auto}",
-	map: "{\"version\":3,\"file\":\"_layout.svelte\",\"sources\":[\"_layout.svelte\"],\"sourcesContent\":[\"<script>\\n\\timport Nav from \\\"../components/Nav.svelte\\\";\\n\\timport Footer from \\\"../components/Footer.svelte\\\";\\n\\n\\texport let segment;\\n</script>\\n\\n<Nav {segment} />\\n\\n<main>\\n\\t<slot />\\n</main>\\n\\n<Footer />\\n\\n<style>\\n\\tmain {\\n\\t\\twidth: 100%;\\n\\t\\t/* max-width: 1000px; */\\n\\t\\tmargin: 0 auto;\\n\\t\\t/* background-color: rgb(116, 116, 116); */\\n\\t}\\n</style>\\n\"],\"names\":[],\"mappings\":\"AAgBC,IAAI,cAAC,CAAC,AACL,KAAK,CAAE,IAAI,CAEX,MAAM,CAAE,CAAC,CAAC,IAAI,AAEf,CAAC\"}"
-};
-
-const Layout = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-	let { segment } = $$props;
-	if ($$props.segment === void 0 && $$bindings.segment && segment !== void 0) $$bindings.segment(segment);
-	$$result.css.add(css$9);
-
-	return `${validate_component(Nav, "Nav").$$render($$result, { segment }, {}, {})}
-
-<main class="${"svelte-cvyklp"}">${slots.default ? slots.default({}) : ``}</main>
-
-${validate_component(Footer, "Footer").$$render($$result, {}, {}, {})}`;
-});
-
-var root_comp = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': Layout
-});
-
-/* src/routes/_error.svelte generated by Svelte v3.31.2 */
-
-const Error$1 = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-	let { status } = $$props;
-	let { error } = $$props;
-	if ($$props.status === void 0 && $$bindings.status && status !== void 0) $$bindings.status(status);
-	if ($$props.error === void 0 && $$bindings.error && error !== void 0) $$bindings.error(error);
-
-	return `${($$result.head += `${($$result.title = `<title>${escape(status)}</title>`, "")}`, "")}
-
-<h1>${escape(status)}</h1>
-
-<p>${escape(error.message)}</p>
-
-${ ``}`;
-});
-
-// This file is generated by Sapper — do not edit it!
-
-const manifest = {
-	server_routes: [
-		{
-			// jobs/index.json.js
-			pattern: /^\/jobs\.json$/,
-			handlers: route_0,
-			params: () => ({})
-		}
-	],
-
-	pages: [
-		{
-			// index.svelte
-			pattern: /^\/$/,
-			parts: [
-				{ name: "index", file: "index.svelte", component: component_0 }
-			]
-		},
-
-		{
-			// contact.svelte
-			pattern: /^\/contact\/?$/,
-			parts: [
-				{ name: "contact", file: "contact.svelte", component: component_1 }
-			]
-		},
-
-		{
-			// about.svelte
-			pattern: /^\/about\/?$/,
-			parts: [
-				{ name: "about", file: "about.svelte", component: component_2 }
-			]
-		},
-
-		{
-			// jobs/index.svelte
-			pattern: /^\/jobs\/?$/,
-			parts: [
-				{ name: "jobs", file: "jobs/index.svelte", component: component_3 }
-			]
-		},
-
-		{
-			// jobs/create.svelte
-			pattern: /^\/jobs\/create\/?$/,
-			parts: [
-				null,
-				{ name: "jobs_create", file: "jobs/create.svelte", component: component_4 }
-			]
-		}
-	],
-
-	root_comp,
-	error: Error$1
-};
-
-const build_dir = "__sapper__/build";
 
 const subscriber_queue = [];
 /**
@@ -605,6 +740,83 @@ function writable(value, start = noop) {
 
 const CONTEXT_KEY = {};
 
+/* src/components/Nav.svelte generated by Svelte v3.31.2 */
+
+const css$8 = {
+	code: ".svelte-u6yd05.svelte-u6yd05{margin:0;padding:0;box-sizing:border-box;font-family:\"Poppins\", sans-serif}.menu-bar.svelte-u6yd05.svelte-u6yd05{position:absolute;right:8%;top:1.3em}.menu-bar.svelte-u6yd05.svelte-u6yd05:hover{cursor:pointer;opacity:0.8}.menu-bar.svelte-u6yd05 div.svelte-u6yd05{width:30px;height:2px;background-color:rgb(177, 177, 177);margin-bottom:7px}.menu-bar.svelte-u6yd05 div.svelte-u6yd05:last-child{margin-bottom:0}header.svelte-u6yd05.svelte-u6yd05{border-bottom:1px solid rgba(255, 62, 0, 0.1)}.position.svelte-u6yd05.svelte-u6yd05{position:absolute;top:0;left:0;width:50%;height:100vh;background-color:rgba(242, 242, 242, 0.95);padding-top:3em;padding-left:10%;padding-right:2em;border-right:1px solid rgba(172, 172, 172, 0.25);transform:translateX(-500px);transition:transform 0.35s ease-out}.show.svelte-u6yd05.svelte-u6yd05{transform:translateX(0px)}.nav-links.svelte-u6yd05 p.svelte-u6yd05{padding:0.75em 0;border-bottom:1px solid rgba(172, 172, 172, 0.25)}.nav-links.svelte-u6yd05 p.svelte-u6yd05:last-child{border-bottom:none}nav.svelte-u6yd05.svelte-u6yd05{width:90%;max-width:1680px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}img.svelte-u6yd05.svelte-u6yd05{width:100%;width:125px;display:block}a.svelte-u6yd05.svelte-u6yd05{padding:1em 0.5em;display:block;font-weight:400;color:rgb(85, 85, 85);text-decoration:none}@media(min-width: 800px){.menu-bar.svelte-u6yd05.svelte-u6yd05{display:none}.position.svelte-u6yd05.svelte-u6yd05{position:relative;width:auto;height:auto;background-color:#ffffff;padding-top:0;padding-left:0;border-right:none;transform:translateX(0)}.nav-links.svelte-u6yd05.svelte-u6yd05{display:flex}.nav-links.svelte-u6yd05 p.svelte-u6yd05{padding:0;border-bottom:none}}",
+	map: "{\"version\":3,\"file\":\"Nav.svelte\",\"sources\":[\"Nav.svelte\"],\"sourcesContent\":[\"<script>\\n    // export let segment;\\n    let state = false;\\n\\n    let toggleShow = () => {\\n        state = !state;\\n    };\\n\\n    let removeMobileMenu = () => {\\n        if (state) {\\n            state = false;\\n        }\\n        return;\\n    };\\n</script>\\n\\n\\n<header>\\n    <div on:click={toggleShow} class=\\\"menu-bar\\\">\\n        <div />\\n        <div />\\n        <div />\\n    </div>\\n    <nav>\\n        <div>\\n            <a href=\\\".\\\">\\n                <img src=\\\"images/visign-logo.svg\\\" alt=\\\"visign logo\\\" />\\n            </a>\\n        </div>\\n        <div class=\\\"nav-links position\\\" class:show={state}>\\n            <p><a on:click={toggleShow} href=\\\".\\\">Home</a></p>\\n            <p><a on:click={toggleShow} href=\\\"about\\\">About</a></p>\\n            <p>\\n                <a on:click={toggleShow} rel=\\\"prefetch\\\" href=\\\"blogs\\\">Blogs</a>\\n            </p>\\n            <p><a on:click={toggleShow} href=\\\"contact\\\">Contact</a></p>\\n        </div>\\n    </nav>\\n</header>\\n<!-- <svelte:window on:click={removeMobileMenu} /> -->\\n\\n<style>\\n    * {\\n        margin: 0;\\n        padding: 0;\\n        box-sizing: border-box;\\n        font-family: \\\"Poppins\\\", sans-serif;\\n    }\\n\\n    .menu-bar {\\n        position: absolute;\\n        right: 8%;\\n        top: 1.3em;\\n    }\\n\\n    .menu-bar:hover {\\n        cursor: pointer;\\n        opacity: 0.8;\\n    }\\n\\n    .menu-bar div {\\n        width: 30px;\\n        height: 2px;\\n        background-color: rgb(177, 177, 177);\\n        margin-bottom: 7px;\\n    }\\n\\n    .menu-bar div:last-child {\\n        margin-bottom: 0;\\n    }\\n\\n    header {\\n        border-bottom: 1px solid rgba(255, 62, 0, 0.1);\\n    }\\n\\n    .position {\\n        position: absolute;\\n        top: 0;\\n        left: 0;\\n        width: 50%;\\n        height: 100vh;\\n        background-color: rgba(242, 242, 242, 0.95);\\n        padding-top: 3em;\\n        padding-left: 10%;\\n        padding-right: 2em;\\n        border-right: 1px solid rgba(172, 172, 172, 0.25);\\n        transform: translateX(-500px);\\n        transition: transform 0.35s ease-out;\\n    }\\n\\n    .show {\\n        transform: translateX(0px);\\n    }\\n\\n    .nav-links p {\\n        padding: 0.75em 0;\\n        border-bottom: 1px solid rgba(172, 172, 172, 0.25);\\n    }\\n\\n    .nav-links p:last-child {\\n        border-bottom: none;\\n    }\\n\\n    nav {\\n        width: 90%;\\n        max-width: 1680px;\\n        margin: 0 auto;\\n        display: flex;\\n        justify-content: space-between;\\n        align-items: center;\\n    }\\n\\n    img {\\n        width: 100%;\\n        width: 125px;\\n        display: block;\\n    }\\n\\n    a {\\n        padding: 1em 0.5em;\\n        display: block;\\n        font-weight: 400;\\n        color: rgb(85, 85, 85);\\n        text-decoration: none;\\n    }\\n\\n    @media (min-width: 800px) {\\n        .menu-bar {\\n            display: none;\\n        }\\n\\n        .position {\\n            position: relative;\\n            width: auto;\\n            height: auto;\\n            background-color: #ffffff;\\n            padding-top: 0;\\n            padding-left: 0;\\n            border-right: none;\\n            transform: translateX(0);\\n        }\\n\\n        .nav-links {\\n            display: flex;\\n        }\\n\\n        .nav-links p {\\n            padding: 0;\\n            border-bottom: none;\\n        }\\n\\n        /* a:active {\\n            border-bottom: 3px solid #ffad0a;\\n        } */\\n    }\\n</style>\\n\"],\"names\":[],\"mappings\":\"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\"}"
+};
+
+const Nav = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+
+	$$result.css.add(css$8);
+
+	return `<header class="${"svelte-u6yd05"}"><div class="${"menu-bar svelte-u6yd05"}"><div class="${"svelte-u6yd05"}"></div>
+        <div class="${"svelte-u6yd05"}"></div>
+        <div class="${"svelte-u6yd05"}"></div></div>
+    <nav class="${"svelte-u6yd05"}"><div class="${"svelte-u6yd05"}"><a href="${"."}" class="${"svelte-u6yd05"}"><img src="${"images/visign-logo.svg"}" alt="${"visign logo"}" class="${"svelte-u6yd05"}"></a></div>
+        <div class="${["nav-links position svelte-u6yd05",  ""].join(" ").trim()}"><p class="${"svelte-u6yd05"}"><a href="${"."}" class="${"svelte-u6yd05"}">Home</a></p>
+            <p class="${"svelte-u6yd05"}"><a href="${"about"}" class="${"svelte-u6yd05"}">About</a></p>
+            <p class="${"svelte-u6yd05"}"><a rel="${"prefetch"}" href="${"blogs"}" class="${"svelte-u6yd05"}">Blogs</a></p>
+            <p class="${"svelte-u6yd05"}"><a href="${"contact"}" class="${"svelte-u6yd05"}">Contact</a></p></div></nav></header>
+`;
+});
+
+/* src/components/Footer.svelte generated by Svelte v3.31.2 */
+
+const css$9 = {
+	code: "footer.svelte-nb5xoq{border-top:1px solid rgba(255, 62, 0, 0.1);color:rgb(145, 145, 145);text-align:center;padding:0.75rem}strong.svelte-nb5xoq{color:rgb(145, 145, 145);font-weight:400}",
+	map: "{\"version\":3,\"file\":\"Footer.svelte\",\"sources\":[\"Footer.svelte\"],\"sourcesContent\":[\"<footer>\\n    <p class=\\\"footer text-align\\\">\\n      <strong>\\n      &copy Visign {new Date().getUTCFullYear()}<strong />\\n    </p>\\n</footer>\\n\\n<style>\\n  footer {\\n    border-top: 1px solid rgba(255, 62, 0, 0.1);\\n    color: rgb(145, 145, 145);\\n    text-align: center;\\n    padding: 0.75rem;\\n    /* height: 2rem; */\\n  }\\n\\n  strong {\\n    color: rgb(145, 145, 145);\\n    font-weight: 400;\\n  }\\n</style>\\n\\n\"],\"names\":[],\"mappings\":\"AAQE,MAAM,cAAC,CAAC,AACN,UAAU,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,GAAG,CAAC,CAAC,EAAE,CAAC,CAAC,CAAC,CAAC,CAAC,GAAG,CAAC,CAC3C,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACzB,UAAU,CAAE,MAAM,CAClB,OAAO,CAAE,OAAO,AAElB,CAAC,AAED,MAAM,cAAC,CAAC,AACN,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,CACzB,WAAW,CAAE,GAAG,AAClB,CAAC\"}"
+};
+
+const Footer = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+	$$result.css.add(css$9);
+
+	return `<footer class="${"svelte-nb5xoq"}"><p class="${"footer text-align"}"><strong class="${"svelte-nb5xoq"}">© Visign ${escape(new Date().getUTCFullYear())}<strong class="${"svelte-nb5xoq"}"></strong></strong></p>
+</footer>`;
+});
+
+/* src/routes/_layout.svelte generated by Svelte v3.31.2 */
+
+const css$a = {
+	code: "main.svelte-cvyklp{width:100%;margin:0 auto}",
+	map: "{\"version\":3,\"file\":\"_layout.svelte\",\"sources\":[\"_layout.svelte\"],\"sourcesContent\":[\"<script>\\n\\timport Nav from \\\"../components/Nav.svelte\\\";\\n\\timport Footer from \\\"../components/Footer.svelte\\\";\\n\\n\\texport let segment;\\n</script>\\n\\n<Nav {segment} />\\n\\n<main>\\n\\t<slot />\\n</main>\\n\\n<Footer />\\n\\n<style>\\n\\tmain {\\n\\t\\twidth: 100%;\\n\\t\\t/* max-width: 1000px; */\\n\\t\\tmargin: 0 auto;\\n\\t\\t/* background-color: rgb(116, 116, 116); */\\n\\t}\\n</style>\\n\"],\"names\":[],\"mappings\":\"AAgBC,IAAI,cAAC,CAAC,AACL,KAAK,CAAE,IAAI,CAEX,MAAM,CAAE,CAAC,CAAC,IAAI,AAEf,CAAC\"}"
+};
+
+const Layout = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+	let { segment } = $$props;
+	if ($$props.segment === void 0 && $$bindings.segment && segment !== void 0) $$bindings.segment(segment);
+	$$result.css.add(css$a);
+
+	return `${validate_component(Nav, "Nav").$$render($$result, { segment }, {}, {})}
+
+<main class="${"svelte-cvyklp"}">${slots.default ? slots.default({}) : ``}</main>
+
+${validate_component(Footer, "Footer").$$render($$result, {}, {}, {})}`;
+});
+
+var root_comp = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': Layout
+});
+
+/* src/routes/_error.svelte generated by Svelte v3.31.2 */
+
+const Error$1 = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+	let { status } = $$props;
+	let { error } = $$props;
+	if ($$props.status === void 0 && $$bindings.status && status !== void 0) $$bindings.status(status);
+	if ($$props.error === void 0 && $$bindings.error && error !== void 0) $$bindings.error(error);
+
+	return `${($$result.head += `${($$result.title = `<title>${escape(status)}</title>`, "")}`, "")}
+
+<h1>${escape(status)}</h1>
+
+<p>${escape(error.message)}</p>
+
+${ ``}`;
+});
+
 /* src/node_modules/@sapper/internal/App.svelte generated by Svelte v3.31.2 */
 
 const App = create_ssr_component(($$result, $$props, $$bindings, slots) => {
@@ -634,6 +846,309 @@ ${validate_component(Layout, "Layout").$$render($$result, Object.assign({ segmen
 		: `${validate_component(level1.component || missing_component, "svelte:component").$$render($$result, Object.assign(level1.props), {}, {})}`}`
 	})}`;
 });
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
+function page_store(value) {
+    const store = writable(value);
+    let ready = true;
+    function notify() {
+        ready = true;
+        store.update(val => val);
+    }
+    function set(new_value) {
+        ready = false;
+        store.set(new_value);
+    }
+    function subscribe(run) {
+        let old_value;
+        return store.subscribe((new_value) => {
+            if (old_value === undefined || (ready && new_value !== old_value)) {
+                run(old_value = new_value);
+            }
+        });
+    }
+    return { notify, set, subscribe };
+}
+
+const initial_data = typeof __SAPPER__ !== 'undefined' && __SAPPER__;
+const stores = {
+    page: page_store({}),
+    preloading: writable(null),
+    session: writable(initial_data && initial_data.session)
+};
+stores.session.subscribe((value) => __awaiter(void 0, void 0, void 0, function* () {
+    return;
+}));
+
+/* src/routes/admin/update/[id].svelte generated by Svelte v3.31.2 */
+
+const css$b = {
+	code: "main.svelte-1st9hmw{width:80%;margin:auto;margin-top:3em}.form-div.svelte-1st9hmw{max-width:1000px;margin:0 auto}.input.svelte-1st9hmw{margin-bottom:1.5rem}input.svelte-1st9hmw,textarea.svelte-1st9hmw{padding:0.75rem 1.1rem;font-size:1.2rem;border:1px solid #b3b3b380;outline-style:none;color:#6d6d6d;width:100%}input.svelte-1st9hmw:focus{background-color:#fff;border:1px solid #fff;outline:6px solid hsla(175, 100%, 75%, 0.25)}textarea.svelte-1st9hmw:focus{background-color:#fff;border:1px solid #fff;outline:6px solid hsla(175, 100%, 75%, 0.25)}button.svelte-1st9hmw{padding:0.755rem 1.2rem;font-size:1.2rem;background-color:#1ae5c1;border:none;outline-style:none;color:#ffffff}button.svelte-1st9hmw:hover{cursor:pointer}h1.svelte-1st9hmw{margin-top:4em;margin-bottom:1em}h4.svelte-1st9hmw{margin-bottom:0.95rem;font-size:1.2rem;font-weight:400}",
+	map: "{\"version\":3,\"file\":\"[id].svelte\",\"sources\":[\"[id].svelte\"],\"sourcesContent\":[\"<script context=\\\"module\\\">\\r\\n  export async function preload(page, session) {\\r\\n    const { id } = page.params;\\r\\n    const result = await this.fetch(`admin/update/${id}.json`);\\r\\n    const fetchedArray = await result.json();\\r\\n    const blog = fetchedArray[0];\\r\\n    const exports = { blog, id };\\r\\n    return { blog, id };\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<script>\\r\\n  import { goto } from \\\"@sapper/app\\\";\\r\\n  export let blog;\\r\\n  export let id;\\r\\n  ////////////////////////////////////////////////////////////\\r\\n\\r\\n  let title = blog.title;\\r\\n  let summary = blog.summary;\\r\\n  let content = blog.content;\\r\\n\\r\\n  function handleSubmit() {\\r\\n    let data = {\\r\\n      title,\\r\\n      summary,\\r\\n      content,\\r\\n    };\\r\\n\\r\\n    //////////////////////////////////////////////////\\r\\n    fetch(`admin/update/${id}.json`, {\\r\\n      method: \\\"PATCH\\\", // or 'PUT'\\r\\n      headers: {\\r\\n        \\\"Content-Type\\\": \\\"application/json\\\",\\r\\n      },\\r\\n      body: JSON.stringify(data),\\r\\n    });\\r\\n    goto(\\\"/admin\\\");\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<main>\\r\\n  <div class=\\\"form-div\\\">\\r\\n    <h1>Update Blog</h1>\\r\\n    <h4>Blog author and category will not be updated</h4>\\r\\n    <form on:submit={handleSubmit}>\\r\\n      <div class=\\\"input\\\">\\r\\n        <input bind:value={title} type=\\\"text\\\" placeholder=\\\"Enter blog title\\\" />\\r\\n      </div>\\r\\n      <div class=\\\"input\\\">\\r\\n        <input\\r\\n          bind:value={summary}\\r\\n          type=\\\"text\\\"\\r\\n          placeholder=\\\"Enter blog summary\\\"\\r\\n        />\\r\\n      </div>\\r\\n      <div class=\\\"input\\\">\\r\\n        <textarea\\r\\n          bind:value={content}\\r\\n          rows=\\\"10\\\"\\r\\n          placeholder=\\\"Enter blog content\\\"\\r\\n        />\\r\\n      </div>\\r\\n      <!-- <a href=\\\"/blogs\\\"> -->\\r\\n      <button type=\\\"submit\\\"> Submit Form </button>\\r\\n      <!-- </a> -->\\r\\n    </form>\\r\\n  </div>\\r\\n</main>\\r\\n\\r\\n<style>\\r\\n  main {\\r\\n    width: 80%;\\r\\n    margin: auto;\\r\\n    margin-top: 3em;\\r\\n  }\\r\\n\\r\\n  .form-div {\\r\\n    max-width: 1000px;\\r\\n    margin: 0 auto;\\r\\n  }\\r\\n\\r\\n  .input {\\r\\n    margin-bottom: 1.5rem;\\r\\n  }\\r\\n\\r\\n  input,\\r\\n  textarea {\\r\\n    padding: 0.75rem 1.1rem;\\r\\n    font-size: 1.2rem;\\r\\n    border: 1px solid #b3b3b380;\\r\\n    outline-style: none;\\r\\n    color: #6d6d6d;\\r\\n    width: 100%;\\r\\n  }\\r\\n\\r\\n  input:focus {\\r\\n    background-color: #fff;\\r\\n    border: 1px solid #fff;\\r\\n    outline: 6px solid hsla(175, 100%, 75%, 0.25);\\r\\n  }\\r\\n\\r\\n  textarea:focus {\\r\\n    background-color: #fff;\\r\\n    border: 1px solid #fff;\\r\\n    outline: 6px solid hsla(175, 100%, 75%, 0.25);\\r\\n  }\\r\\n\\r\\n  button {\\r\\n    padding: 0.755rem 1.2rem;\\r\\n    font-size: 1.2rem;\\r\\n    background-color: #1ae5c1;\\r\\n    border: none;\\r\\n    outline-style: none;\\r\\n    color: #ffffff;\\r\\n  }\\r\\n\\r\\n  button:hover {\\r\\n    cursor: pointer;\\r\\n  }\\r\\n\\r\\n  h1 {\\r\\n    margin-top: 4em;\\r\\n    margin-bottom: 1em;\\r\\n  }\\r\\n\\r\\n  h4 {\\r\\n    margin-bottom: 0.95rem;\\r\\n    font-size: 1.2rem;\\r\\n    font-weight: 400;\\r\\n  }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AAsEE,IAAI,eAAC,CAAC,AACJ,KAAK,CAAE,GAAG,CACV,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,GAAG,AACjB,CAAC,AAED,SAAS,eAAC,CAAC,AACT,SAAS,CAAE,MAAM,CACjB,MAAM,CAAE,CAAC,CAAC,IAAI,AAChB,CAAC,AAED,MAAM,eAAC,CAAC,AACN,aAAa,CAAE,MAAM,AACvB,CAAC,AAED,oBAAK,CACL,QAAQ,eAAC,CAAC,AACR,OAAO,CAAE,OAAO,CAAC,MAAM,CACvB,SAAS,CAAE,MAAM,CACjB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,SAAS,CAC3B,aAAa,CAAE,IAAI,CACnB,KAAK,CAAE,OAAO,CACd,KAAK,CAAE,IAAI,AACb,CAAC,AAED,oBAAK,MAAM,AAAC,CAAC,AACX,gBAAgB,CAAE,IAAI,CACtB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,IAAI,CACtB,OAAO,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,GAAG,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,CAAC,IAAI,CAAC,AAC/C,CAAC,AAED,uBAAQ,MAAM,AAAC,CAAC,AACd,gBAAgB,CAAE,IAAI,CACtB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,IAAI,CACtB,OAAO,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,GAAG,CAAC,CAAC,IAAI,CAAC,CAAC,GAAG,CAAC,CAAC,IAAI,CAAC,AAC/C,CAAC,AAED,MAAM,eAAC,CAAC,AACN,OAAO,CAAE,QAAQ,CAAC,MAAM,CACxB,SAAS,CAAE,MAAM,CACjB,gBAAgB,CAAE,OAAO,CACzB,MAAM,CAAE,IAAI,CACZ,aAAa,CAAE,IAAI,CACnB,KAAK,CAAE,OAAO,AAChB,CAAC,AAED,qBAAM,MAAM,AAAC,CAAC,AACZ,MAAM,CAAE,OAAO,AACjB,CAAC,AAED,EAAE,eAAC,CAAC,AACF,UAAU,CAAE,GAAG,CACf,aAAa,CAAE,GAAG,AACpB,CAAC,AAED,EAAE,eAAC,CAAC,AACF,aAAa,CAAE,OAAO,CACtB,SAAS,CAAE,MAAM,CACjB,WAAW,CAAE,GAAG,AAClB,CAAC\"}"
+};
+
+async function preload$2(page, session) {
+	const { id } = page.params;
+	const result = await this.fetch(`admin/update/${id}.json`);
+	const fetchedArray = await result.json();
+	const blog = fetchedArray[0];
+	return { blog, id };
+}
+
+const U5Bidu5D = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+	let { blog } = $$props;
+	let { id } = $$props;
+
+	////////////////////////////////////////////////////////////
+	let title = blog.title;
+
+	let summary = blog.summary;
+	let content = blog.content;
+
+	if ($$props.blog === void 0 && $$bindings.blog && blog !== void 0) $$bindings.blog(blog);
+	if ($$props.id === void 0 && $$bindings.id && id !== void 0) $$bindings.id(id);
+	$$result.css.add(css$b);
+
+	return `<main class="${"svelte-1st9hmw"}"><div class="${"form-div svelte-1st9hmw"}"><h1 class="${"svelte-1st9hmw"}">Update Blog</h1>
+    <h4 class="${"svelte-1st9hmw"}">Blog author and category will not be updated</h4>
+    <form><div class="${"input svelte-1st9hmw"}"><input type="${"text"}" placeholder="${"Enter blog title"}" class="${"svelte-1st9hmw"}"${add_attribute("value", title, 1)}></div>
+      <div class="${"input svelte-1st9hmw"}"><input type="${"text"}" placeholder="${"Enter blog summary"}" class="${"svelte-1st9hmw"}"${add_attribute("value", summary, 1)}></div>
+      <div class="${"input svelte-1st9hmw"}"><textarea rows="${"10"}" placeholder="${"Enter blog content"}" class="${"svelte-1st9hmw"}">${content || ""}</textarea></div>
+      
+      <button type="${"submit"}" class="${"svelte-1st9hmw"}">Submit Form </button>
+      </form></div>
+</main>`;
+});
+
+var component_5 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': U5Bidu5D,
+  preload: preload$2
+});
+
+/* src/routes/blogs/index.svelte generated by Svelte v3.31.2 */
+
+const css$c = {
+	code: ".width.svelte-1ion1hp.svelte-1ion1hp{max-width:800px;width:85%;margin:0 auto}.card-container.svelte-1ion1hp.svelte-1ion1hp{padding:2rem 0;margin-top:3rem}h1.svelte-1ion1hp.svelte-1ion1hp{margin-top:0;margin-bottom:1rem}p.svelte-1ion1hp.svelte-1ion1hp{margin:0;font-size:0.95rem;text-transform:capitalize}.title.svelte-1ion1hp.svelte-1ion1hp{margin:0;padding:0;font-size:1rem;font-weight:600}.blog.svelte-1ion1hp.svelte-1ion1hp{border:1px solid rgba(51, 51, 51, 0.125);margin-bottom:0.95rem;padding:1.2rem;border-radius:0.34rem;transition:box-shadow 0.1375s ease}.date.svelte-1ion1hp.svelte-1ion1hp{font-size:0.75rem;color:rgb(173, 173, 173)}a.svelte-1ion1hp.svelte-1ion1hp{text-decoration:none}a.svelte-1ion1hp .blog.svelte-1ion1hp:hover{box-shadow:-2px -2px 12px #f5f5f5, 2px 2px 12px #ececec;background-color:#fffefe}",
+	map: "{\"version\":3,\"file\":\"index.svelte\",\"sources\":[\"index.svelte\"],\"sourcesContent\":[\"<script context=\\\"module\\\">\\r\\n  export async function preload(page, session) {\\r\\n    const result = await this.fetch(\\\"blogs.json\\\");\\r\\n    const blogs = await result.json();\\r\\n    return { blogs };\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<script>\\r\\n  export let blogs;\\r\\n\\r\\n  async function handleDelete(e) {\\r\\n    let id = e.target.id;\\r\\n    let data = { id };\\r\\n    await fetch(\\\"blogs.json\\\", {\\r\\n      method: \\\"PUT\\\", // or 'PUT'\\r\\n      headers: {\\r\\n        \\\"Content-Type\\\": \\\"application/json\\\",\\r\\n      },\\r\\n      body: JSON.stringify(data),\\r\\n    });\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<main>\\r\\n  <div class=\\\"card-container width\\\">\\r\\n    <h1>Our recent blogs</h1>\\r\\n    {#each blogs as blog (blog.id)}\\r\\n      <a href=\\\"/blogs/{blog.id}\\\">\\r\\n        <div class=\\\"blog\\\">\\r\\n          <p class=\\\"title\\\">{blog.title}</p>\\r\\n          <p class=\\\"date\\\">\\r\\n            {new Date(blog.created_at).toLocaleString(\\\"en-US\\\", {\\r\\n              month: \\\"long\\\",\\r\\n              day: \\\"2-digit\\\",\\r\\n              year: \\\"numeric\\\",\\r\\n              hour: \\\"2-digit\\\",\\r\\n              timeZone: \\\"Africa/Nairobi\\\", // 6 hours behind UTC\\r\\n            })}\\r\\n          </p>\\r\\n          <p>{blog.summary}</p>\\r\\n        </div>\\r\\n      </a>\\r\\n    {/each}\\r\\n  </div>\\r\\n</main>\\r\\n\\r\\n<svelte:head>\\r\\n  <title>Blogs</title>\\r\\n</svelte:head>\\r\\n\\r\\n<style>\\r\\n  .width {\\r\\n    max-width: 800px;\\r\\n    width: 85%;\\r\\n    margin: 0 auto;\\r\\n  }\\r\\n\\r\\n  .card-container {\\r\\n    padding: 2rem 0;\\r\\n    /* border-bottom: 1px solid #3333331a; */\\r\\n    margin-top: 3rem;\\r\\n  }\\r\\n\\r\\n  h1 {\\r\\n    margin-top: 0;\\r\\n    margin-bottom: 1rem;\\r\\n  }\\r\\n\\r\\n  p {\\r\\n    margin: 0;\\r\\n    font-size: 0.95rem;\\r\\n    text-transform: capitalize;\\r\\n  }\\r\\n\\r\\n  .title {\\r\\n    margin: 0;\\r\\n    padding: 0;\\r\\n    font-size: 1rem;\\r\\n    font-weight: 600;\\r\\n  }\\r\\n\\r\\n  .blog {\\r\\n    border: 1px solid rgba(51, 51, 51, 0.125);\\r\\n    margin-bottom: 0.95rem;\\r\\n    padding: 1.2rem;\\r\\n    border-radius: 0.34rem;\\r\\n    transition: box-shadow 0.1375s ease;\\r\\n  }\\r\\n\\r\\n  .date {\\r\\n    font-size: 0.75rem;\\r\\n    color: rgb(173, 173, 173);\\r\\n  }\\r\\n\\r\\n  a {\\r\\n    text-decoration: none;\\r\\n  }\\r\\n\\r\\n  a .blog:hover {\\r\\n    box-shadow: -2px -2px 12px #f5f5f5, 2px 2px 12px #ececec;\\r\\n    background-color: #fffefe;\\r\\n  }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AAoDE,MAAM,8BAAC,CAAC,AACN,SAAS,CAAE,KAAK,CAChB,KAAK,CAAE,GAAG,CACV,MAAM,CAAE,CAAC,CAAC,IAAI,AAChB,CAAC,AAED,eAAe,8BAAC,CAAC,AACf,OAAO,CAAE,IAAI,CAAC,CAAC,CAEf,UAAU,CAAE,IAAI,AAClB,CAAC,AAED,EAAE,8BAAC,CAAC,AACF,UAAU,CAAE,CAAC,CACb,aAAa,CAAE,IAAI,AACrB,CAAC,AAED,CAAC,8BAAC,CAAC,AACD,MAAM,CAAE,CAAC,CACT,SAAS,CAAE,OAAO,CAClB,cAAc,CAAE,UAAU,AAC5B,CAAC,AAED,MAAM,8BAAC,CAAC,AACN,MAAM,CAAE,CAAC,CACT,OAAO,CAAE,CAAC,CACV,SAAS,CAAE,IAAI,CACf,WAAW,CAAE,GAAG,AAClB,CAAC,AAED,KAAK,8BAAC,CAAC,AACL,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,KAAK,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,EAAE,CAAC,CAAC,KAAK,CAAC,CACzC,aAAa,CAAE,OAAO,CACtB,OAAO,CAAE,MAAM,CACf,aAAa,CAAE,OAAO,CACtB,UAAU,CAAE,UAAU,CAAC,OAAO,CAAC,IAAI,AACrC,CAAC,AAED,KAAK,8BAAC,CAAC,AACL,SAAS,CAAE,OAAO,CAClB,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,AAC3B,CAAC,AAED,CAAC,8BAAC,CAAC,AACD,eAAe,CAAE,IAAI,AACvB,CAAC,AAED,gBAAC,CAAC,oBAAK,MAAM,AAAC,CAAC,AACb,UAAU,CAAE,IAAI,CAAC,IAAI,CAAC,IAAI,CAAC,OAAO,CAAC,CAAC,GAAG,CAAC,GAAG,CAAC,IAAI,CAAC,OAAO,CACxD,gBAAgB,CAAE,OAAO,AAC3B,CAAC\"}"
+};
+
+async function preload$3(page, session) {
+	const result = await this.fetch("blogs.json");
+	const blogs = await result.json();
+	return { blogs };
+}
+
+const Blogs = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+	let { blogs } = $$props;
+	if ($$props.blogs === void 0 && $$bindings.blogs && blogs !== void 0) $$bindings.blogs(blogs);
+	$$result.css.add(css$c);
+
+	return `<main><div class="${"card-container width svelte-1ion1hp"}"><h1 class="${"svelte-1ion1hp"}">Our recent blogs</h1>
+    ${each(blogs, blog => `<a href="${"/blogs/" + escape(blog.id)}" class="${"svelte-1ion1hp"}"><div class="${"blog svelte-1ion1hp"}"><p class="${"title svelte-1ion1hp"}">${escape(blog.title)}</p>
+          <p class="${"date svelte-1ion1hp"}">${escape(new Date(blog.created_at).toLocaleString("en-US", {
+		month: "long",
+		day: "2-digit",
+		year: "numeric",
+		hour: "2-digit",
+		timeZone: "Africa/Nairobi", // 6 hours behind UTC
+		
+	}))}</p>
+          <p class="${"svelte-1ion1hp"}">${escape(blog.summary)}</p></div>
+      </a>`)}</div></main>
+
+${($$result.head += `${($$result.title = `<title>Blogs</title>`, "")}`, "")}`;
+});
+
+var component_6 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': Blogs,
+  preload: preload$3
+});
+
+/* src/routes/blogs/[id].svelte generated by Svelte v3.31.2 */
+
+const css$d = {
+	code: "main.svelte-1arq9tc{width:80%;max-width:900px;margin:auto;margin-top:2rem}h1.svelte-1arq9tc{margin-top:4em;margin-bottom:1em}h4.svelte-1arq9tc{margin-bottom:0.95rem;font-size:1.2rem;font-weight:400}.date.svelte-1arq9tc{font-size:0.75rem;color:rgb(173, 173, 173)}",
+	map: "{\"version\":3,\"file\":\"[id].svelte\",\"sources\":[\"[id].svelte\"],\"sourcesContent\":[\"<script context=\\\"module\\\">\\r\\n  export async function preload(page, session) {\\r\\n    const { id } = page.params;\\r\\n    const result = await this.fetch(`blogs/${id}.json`);\\r\\n    const fetchedArray = await result.json();\\r\\n    const blog = fetchedArray[0];\\r\\n    return { blog };\\r\\n  }\\r\\n</script>\\r\\n\\r\\n<script>\\r\\n  export let blog;\\r\\n  ////////////////////////////////////////////////////////////\\r\\n</script>\\r\\n\\r\\n<main>\\r\\n  <h1>{blog.title}</h1>\\r\\n  <div class=\\\"blog\\\">\\r\\n    <p class=\\\"title\\\" />\\r\\n    <p class=\\\"date\\\">\\r\\n      {new Date(blog.created_at).toLocaleString(\\\"en-US\\\", {\\r\\n        month: \\\"long\\\",\\r\\n        day: \\\"2-digit\\\",\\r\\n        year: \\\"numeric\\\",\\r\\n        hour: \\\"2-digit\\\",\\r\\n        timeZone: \\\"Africa/Nairobi\\\", // 6 hours behind UTC\\r\\n      })}\\r\\n    </p>\\r\\n    <h4>{blog.summary}</h4>\\r\\n    <p>{blog.content}</p>\\r\\n  </div>\\r\\n</main>\\r\\n\\r\\n<svelte:head>\\r\\n  <title>Blog</title>\\r\\n</svelte:head>\\r\\n\\r\\n<style>\\r\\n  main {\\r\\n    width: 80%;\\r\\n    max-width: 900px;\\r\\n    margin: auto;\\r\\n    margin-top: 2rem;\\r\\n  }\\r\\n\\r\\n  h1 {\\r\\n    margin-top: 4em;\\r\\n    margin-bottom: 1em;\\r\\n  }\\r\\n\\r\\n  h4 {\\r\\n    margin-bottom: 0.95rem;\\r\\n    font-size: 1.2rem;\\r\\n    font-weight: 400;\\r\\n  }\\r\\n\\r\\n  .date {\\r\\n    font-size: 0.75rem;\\r\\n    color: rgb(173, 173, 173);\\r\\n  }\\r\\n</style>\\r\\n\"],\"names\":[],\"mappings\":\"AAsCE,IAAI,eAAC,CAAC,AACJ,KAAK,CAAE,GAAG,CACV,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,IAAI,CACZ,UAAU,CAAE,IAAI,AAClB,CAAC,AAED,EAAE,eAAC,CAAC,AACF,UAAU,CAAE,GAAG,CACf,aAAa,CAAE,GAAG,AACpB,CAAC,AAED,EAAE,eAAC,CAAC,AACF,aAAa,CAAE,OAAO,CACtB,SAAS,CAAE,MAAM,CACjB,WAAW,CAAE,GAAG,AAClB,CAAC,AAED,KAAK,eAAC,CAAC,AACL,SAAS,CAAE,OAAO,CAClB,KAAK,CAAE,IAAI,GAAG,CAAC,CAAC,GAAG,CAAC,CAAC,GAAG,CAAC,AAC3B,CAAC\"}"
+};
+
+async function preload$4(page, session) {
+	const { id } = page.params;
+	const result = await this.fetch(`blogs/${id}.json`);
+	const fetchedArray = await result.json();
+	const blog = fetchedArray[0];
+	return { blog };
+}
+
+const U5Bidu5D$1 = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+	let { blog } = $$props;
+	if ($$props.blog === void 0 && $$bindings.blog && blog !== void 0) $$bindings.blog(blog);
+	$$result.css.add(css$d);
+
+	return `<main class="${"svelte-1arq9tc"}"><h1 class="${"svelte-1arq9tc"}">${escape(blog.title)}</h1>
+  <div class="${"blog"}"><p class="${"title"}"></p>
+    <p class="${"date svelte-1arq9tc"}">${escape(new Date(blog.created_at).toLocaleString("en-US", {
+		month: "long",
+		day: "2-digit",
+		year: "numeric",
+		hour: "2-digit",
+		timeZone: "Africa/Nairobi", // 6 hours behind UTC
+		
+	}))}</p>
+    <h4 class="${"svelte-1arq9tc"}">${escape(blog.summary)}</h4>
+    <p>${escape(blog.content)}</p></div></main>
+
+${($$result.head += `${($$result.title = `<title>Blog</title>`, "")}`, "")}`;
+});
+
+var component_7 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': U5Bidu5D$1,
+  preload: preload$4
+});
+
+// This file is generated by Sapper — do not edit it!
+
+const d = decodeURIComponent;
+
+const manifest = {
+	server_routes: [
+		{
+			// admin/index.json.js
+			pattern: /^\/admin\.json$/,
+			handlers: route_0,
+			params: () => ({})
+		},
+
+		{
+			// admin/create/index.json.js
+			pattern: /^\/admin\/create\.json$/,
+			handlers: route_1,
+			params: () => ({})
+		},
+
+		{
+			// admin/update/[id].json.js
+			pattern: /^\/admin\/update\/([^/]+?)\.json$/,
+			handlers: route_2,
+			params: match => ({ id: d(match[1]) })
+		},
+
+		{
+			// blogs/index.json.js
+			pattern: /^\/blogs\.json$/,
+			handlers: route_3,
+			params: () => ({})
+		},
+
+		{
+			// blogs/[id].json.js
+			pattern: /^\/blogs\/([^/]+?)\.json$/,
+			handlers: route_4,
+			params: match => ({ id: d(match[1]) })
+		}
+	],
+
+	pages: [
+		{
+			// index.svelte
+			pattern: /^\/$/,
+			parts: [
+				{ name: "index", file: "index.svelte", component: component_0 }
+			]
+		},
+
+		{
+			// contact.svelte
+			pattern: /^\/contact\/?$/,
+			parts: [
+				{ name: "contact", file: "contact.svelte", component: component_1 }
+			]
+		},
+
+		{
+			// about.svelte
+			pattern: /^\/about\/?$/,
+			parts: [
+				{ name: "about", file: "about.svelte", component: component_2 }
+			]
+		},
+
+		{
+			// admin/index.svelte
+			pattern: /^\/admin\/?$/,
+			parts: [
+				{ name: "admin", file: "admin/index.svelte", component: component_3 }
+			]
+		},
+
+		{
+			// admin/create/index.svelte
+			pattern: /^\/admin\/create\/?$/,
+			parts: [
+				null,
+				{ name: "admin_create", file: "admin/create/index.svelte", component: component_4 }
+			]
+		},
+
+		{
+			// admin/update/[id].svelte
+			pattern: /^\/admin\/update\/([^/]+?)\/?$/,
+			parts: [
+				null,
+				null,
+				{ name: "admin_update_$id", file: "admin/update/[id].svelte", component: component_5, params: match => ({ id: d(match[1]) }) }
+			]
+		},
+
+		{
+			// blogs/index.svelte
+			pattern: /^\/blogs\/?$/,
+			parts: [
+				{ name: "blogs", file: "blogs/index.svelte", component: component_6 }
+			]
+		},
+
+		{
+			// blogs/[id].svelte
+			pattern: /^\/blogs\/([^/]+?)\/?$/,
+			parts: [
+				null,
+				{ name: "blogs_$id", file: "blogs/[id].svelte", component: component_7, params: match => ({ id: d(match[1]) }) }
+			]
+		}
+	],
+
+	root_comp,
+	error: Error$1
+};
+
+const build_dir = "__sapper__/build";
 
 /**
  * @param typeMap [Object] Map of MIME type -> Array[extensions]
@@ -748,7 +1263,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
 
-function __awaiter(thisArg, _arguments, P, generator) {
+function __awaiter$1(thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -760,7 +1275,7 @@ function __awaiter(thisArg, _arguments, P, generator) {
 
 function get_server_route_handler(routes) {
     function handle_route(route, req, res, next) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$1(this, void 0, void 0, function* () {
             req.params = route.params(route.pattern.exec(req.path));
             const method = req.method.toLowerCase();
             // 'delete' cannot be exported from a module because it is a keyword,
@@ -5110,7 +5625,7 @@ function get_page_handler(manifest, session_getter) {
     }
     function handle_page(page, req, res, status = 200, error = null) {
         var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$1(this, void 0, void 0, function* () {
             const is_service_worker_index = req.path === '/service-worker-index.html';
             const build_info = get_build_info();
             res.setHeader('Content-Type', 'text/html');
